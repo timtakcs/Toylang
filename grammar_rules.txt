@@ -1,0 +1,26 @@
+factor: PLUS factor
+      | MINUS factor
+      | INT
+      | LPAR expression RPAR
+      | VAR
+
+term: factor ((PLUS|MINUS) factor)*
+
+expression: term ((MULT|DIV) term)*
+
+var: ID
+
+assignment: var ASSGN expression
+
+empty: //JS uses this
+
+statement: compound_statement
+         | assignment
+         | empty
+
+compound_statement: statement_list
+
+program: compound_statement
+
+
+
