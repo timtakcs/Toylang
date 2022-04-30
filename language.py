@@ -28,6 +28,7 @@ typeRPAR = "RPAR"
 typeLine = "LINE"
 
 typeEndOfFile = "EOF"
+typeStart = "START"
 
 INTS = "0123456789"
 
@@ -117,11 +118,12 @@ class AssignmentNode:
 
     def __repr__(self):
         return f'({self.leftChild}, {self.operator}, {self.rightChild})'
-    
-class StmtNode:
-    pass
 
 class CompoundStmtNode:
+    def __init__(self):
+        self.statements = []
+
+class EmptyOpNode:
     pass
 
 #Lexer
@@ -195,9 +197,12 @@ class Lexer:
 
 #GOAL FOR IMPROVEMENT: Rewrite the token identifier as a finite state machine when you add more token types
 #This is too redundant
+#Looking back at it, I have no clue what that means and I think the way it is right now is already a finite state machine
 
     def makeTokens(self):
         tokenArray = []
+
+        # tokenArray.append(Token(typeStart, 0))
 
         while self.currentChar != None:
             if self.currentChar in " \t":
@@ -219,6 +224,9 @@ class Lexer:
                 self.advance()
             elif self.currentChar == ")":
                 tokenArray.append(Token(tokenType=typeRPAR, line=self.pos.line))
+                self.advance()
+            elif self.currentChar == "\n":
+                tokenArray.append(Token(tokenType=typeLine, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "\"":
                 tokenArray.append(self.makeString(line=self.pos.line))
@@ -247,6 +255,7 @@ class Lexer:
                 self.advance()
             elif self.currentChar == "=" and self.peek != "=":
                 tokenArray.append(Token(typeAssign, self.pos.line))
+                self.advance()
             else:
                 line = self.pos.line
                 self.advance()
@@ -309,7 +318,16 @@ class Parser:
             else:
                 return check.failure(InvalidSyntaxError("Syntax Error: Expected )", token.line))
 
-        return check.failure(InvalidSyntaxError("Syntax Error: Expected INT or FLOAT", token.line))
+        else:
+            check.register(self.advance())
+            node = check.register(self.variable())
+            print(self.curToken)
+            print("this one")
+
+            if check.error:
+                return check
+
+            return check.success(node)
 
     def term(self):
         check = ParseChecker()
@@ -327,11 +345,14 @@ class Parser:
         check = ParseChecker()
         left = check.register(self.term())
 
+        print(self.curToken)
+
         if check.error:
             return check
 
         while self.curToken.type in (typePlus, typeMinus):
             operator = self.curToken
+            print(operator)
             check.register(self.advance())
             right = check.register(self.term())
             if check.error:
@@ -342,11 +363,12 @@ class Parser:
     def variable(self):
         check = ParseChecker()
         var = check.register(VariableNode(self.curToken))
-        return var
+        return check.success(var)
 
     def assignment(self):
         check = ParseChecker()
         left = check.register(self.variable())
+        check.register(self.advance())
 
         if check.error:
             return check
@@ -362,19 +384,75 @@ class Parser:
         return check.success(left)
 
     def statement(self):
-        pass
+        check = ParseChecker()
+
+        if self.curToken.type == typeVar:
+            node = check.register(self.assignment())
+            if check.error:
+                return check
+        elif self.curToken.type in (typeInt, typeFloat):
+            node = check.register(self.expression())
+            if check.error:
+                return check
+        else:
+            node = check.register(self.empty())
+            if check.error:
+                return check
+
+        return check.success(node)
+
+    def statementList(self):
+        check = ParseChecker()
+
+        if check.error:
+            return check
+
+        statements = []
+
+        statements.append(check.register(self.statement()))
+
+        while self.curToken.type == typeLine:
+            check.register(self.advance())
+            statements.append(check.register(self.statement()))
+            if check.error:
+                return check
+
+        return statements
 
     def compStatement(self):
-        pass
+        check = ParseChecker()
+        nodes = check.register(self.statementList())
+
+        if check.error:
+            return check
+
+        rootStmtNode = CompoundStmtNode()
+
+        for node in nodes:
+            rootStmtNode.statements.append(node)
+
+        return check.success(rootStmtNode)
 
     def program(self):
-        pass
+        check = ParseChecker()
+
+        node = check.register(self.compStatement())
+        check.register(self.advance())
+
+        if check.error:
+            return check
+
+        return check.success(node)
+
+    def empty(self):
+        return EmptyOpNode()
            
 #For the parse method I simply call the expression method because it is at the top of the inclusivity hierarchy
 #factor() and term() will be called from within expression() when reached
+#This is called recursive descent
 
     def parse(self):
-        result = self.expression()
+        result = self.program()
         if not result.error and self.curToken.type != typeEndOfFile:
             return result.failure(InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
         return result
@@ -387,12 +465,19 @@ class Visitor(object):
             return self.visitNumNode(node)
         elif isinstance(node, OperatorNode):
             return self.visitOpNode(node)
+        elif isinstance(node, CompoundStmtNode):
+            return self.visitCompNode(node)
+        elif isinstance(node, AssignmentNode):
+            return self.visitAssgnNode(node)
+        elif isinstance(node, VariableNode):
+            return self.visitVarNode(node)
 
 #Interpreter
 
 class Interpreter(Visitor):
     def __init__(self, parser):
         self.parser = parser
+        self.variables = {}
 
     def visitOpNode(self, node):
         if node.operator.type == typePlus:
@@ -406,6 +491,21 @@ class Interpreter(Visitor):
 
     def visitNumNode(self, node):
         return node.value.value
+    
+    def visitVarNode(self, node):
+        return self.variables.get(node.value)
+        
+    def visitAssgnNode(self, node):
+        self.variables[self.visit(node.leftChild)] = self.visit(node.rightChild)
+        print(self.variables)
+
+    def visitCompNode(self, node):
+        results = []
+
+        for stmt in node.statements:
+            results.append(self.visit(stmt))
+        
+        return results     
 
     def interpret(self):
         self.tree = self.parser.parse()
