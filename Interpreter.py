@@ -37,11 +37,10 @@ class Interpreter(Visitor):
         return node.value.value
     
     def visitVarNode(self, node):
-        node.value
+        return self.variables[node.value]
         
     def visitAssgnNode(self, node):
-        self.variables[self.visit(node.leftChild)] = self.visit(node.rightChild)
-        print(self.variables)
+        self.variables[node.leftChild.value] = self.visit(node.rightChild)
 
     def visitCompNode(self, node):
         results = []
@@ -53,4 +52,5 @@ class Interpreter(Visitor):
 
     def interpret(self):
         self.tree = self.parser.parse()
-        return self.visit(self.tree.node)
+        self.visit(self.tree.node)
+        return self.variables

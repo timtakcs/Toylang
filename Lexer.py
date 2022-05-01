@@ -44,7 +44,6 @@ class Token:
         result = f'{self.type}: {self.value}'
         return result
 
-
 #Position
 
 class Position:

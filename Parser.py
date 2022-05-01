@@ -93,13 +93,11 @@ class Parser:
                 check.register(self.advance())
                 return check.success(newExpression)
             else:
-                return check.failure(lx.InvalidSyntaxError("Syntax Error: Expected )", token.line))
+                return check.failure(err.InvalidSyntaxError("Syntax Error: Expected )", token.line))
 
         else:
-            check.register(self.advance())
             node = check.register(self.variable())
-            print(self.curToken)
-            print("this one")
+            check.register(self.advance())
 
             if check.error:
                 return check
@@ -122,14 +120,11 @@ class Parser:
         check = ParseChecker()
         left = check.register(self.term())
 
-        print(self.curToken)
-
         if check.error:
             return check
 
         while self.curToken.type in (lx.typePlus, lx.typeMinus):
             operator = self.curToken
-            print(operator)
             check.register(self.advance())
             right = check.register(self.term())
             if check.error:
