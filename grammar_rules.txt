@@ -18,6 +18,9 @@ statement: compound_statement
          | assignment
          | empty
 
+statement_list: statement
+              | statement LINE statement_list
+              
 compound_statement: statement_list
 
 program: compound_statement
