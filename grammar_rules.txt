@@ -8,15 +8,21 @@ term: factor ((PLUS|MINUS) factor)*
 
 expression: term ((MULT|DIV) term)*
 
+logic-expression: expression LOGIC expression
+
 var: ID
 
 assignment: var ASSGN expression
+
+if: IF logic-expression (statement) (ELIF logic-expression (statement))*? (ELSE (statement))?
 
 empty: //JS uses this
 
 statement: compound_statement
          | assignment
          | empty
+         | if
+
 
 statement_list: statement
               | statement LINE statement_list

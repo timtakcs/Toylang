@@ -23,6 +23,9 @@ class VariableNode:
     def __init__(self, token):
         self.token = token
         self.value = token.value
+    
+    def __repr__(self):
+        return f'({self.token}, {self.value})'
 
 class AssignmentNode:
     def __init__(self, name, operator, expression):
@@ -36,6 +39,20 @@ class AssignmentNode:
 class CompoundStmtNode:
     def __init__(self):
         self.statements = []
+
+class IfNode:
+    def __init__(self, cases, elseCase):
+        self.cases = cases
+        self.elseCase = elseCase
+
+class LogicNode:
+    def __init__(self, left, operator, right):
+        self.leftChild = left
+        self.rightChild = right
+        self.operator = operator
+
+    def __repr__(self):
+        return f'({self.leftChild}, {self.operator}, {self.rightChild})'
 
 class EmptyOpNode:
     pass
@@ -130,7 +147,111 @@ class Parser:
             if check.error:
                 return check
             left = OperatorNode(left, operator, right)
+
+        if self.curToken.type in lx.logicOps:
+            left = check.register(self.logicExpression(left))
+            print("left", left)
+
         return check.success(left)
+
+    #TODO && and || parsing
+    def logicExpression(self, left):
+        check = ParseChecker()
+        if check.error: 
+            return check
+
+        operator = self.curToken
+        check.register(self.advance())
+
+        right = check.register(self.expression())
+        return check.success(LogicNode(left, operator, right))
+
+    def ifExpression(self):
+        check = ParseChecker()
+        cases = []
+        elseCase = None
+
+        check.register(self.advance())
+
+        condition = check.register(self.logicExpression())
+        print(self.curToken)
+        if check.error: 
+            print("1")
+            return check
+
+        if self.curToken.type != lx.typeLBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid if statement declaration, expected {"
+            , self.curToken.line))
+
+        check.register(self.advance())
+        
+        if self.curToken.type == lx.typeLine:
+            check.register(self.advance())
+
+        expression = check.register(self.expression())
+        if check.error: 
+            print("1")
+            return check
+
+        if self.curToken.type != lx.typeRBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid if expression declaration, expected }"
+            , self.curToken.line))
+
+        cases.append((condition, expression))
+        check.register(self.advance())
+
+        #inside this loop is the same code as the if statement parsin
+        #TODO abstract this to a function so that the code is readable
+        while self.curToken.type == lx.typeElif:
+            check.register(self.logicExpression())
+            check.register(self.advance())
+            
+            if self.curToken.type != lx.typeLBRACE:
+                return check.failure(err.InvalidSyntaxError("Invalid elif statement declaration, expected {"
+                , self.curToken.line))
+
+            check.register(self.advance())
+
+            if self.curToken.type == lx.typeLine:
+                check.register(self.advance())
+
+            expression = check.register(self.logicExpression())
+            if check.error: 
+                print("1")
+                return check
+
+            if self.curToken.type != lx.typeRBRACE:
+                return check.failure(err.InvalidSyntaxError("Invalid elif expression declaration, expected }"
+                , self.curToken.line))
+
+            cases.append((condition, expression))
+            check.register(self.advance())
+        
+        #same thing as before
+        if self.curToken.type == lx.typeElse:
+            check.register(self.advance())
+            
+            if self.curToken.type != lx.typeLBRACE:
+                return check.failure(err.InvalidSyntaxError("Invalid else statement declaration, expected {"
+                , self.curToken.line))
+
+            check.register(self.advance())
+            if self.curToken.type == lx.typeLine:
+                check.register(self.advance())
+
+            expression = check.register(self.expression())
+            if check.error: 
+                print("1")
+                return check
+
+            if self.curToken.type != lx.typeRBRACE:
+                return check.failure(err.InvalidSyntaxError("Invalid else expression declaration, expected }"
+                , self.curToken.line))
+
+            elseCase = (condition, expression)
+            check.register(self.advance())
+
+        return check.success(IfNode(cases, elseCase))
 
     def variable(self):
         check = ParseChecker()
@@ -165,6 +286,10 @@ class Parser:
         elif self.curToken.type in (lx.typeInt, lx.typeFloat):
             node = check.register(self.expression())
             if check.error:
+                return check
+        elif self.curToken.type == lx.typeIf:
+            node = check.register(self.ifExpression())
+            if check.error():
                 return check
         else:
             node = check.register(self.empty())
@@ -218,12 +343,10 @@ class Parser:
 
     def empty(self):
         return EmptyOpNode()
-           
-#For the parse method I simply call the expression method because it is at the top of the inclusivity hierarchy
-#factor() and term() will be called from within expression() when reached
-#This is called recursive descent
+    #TODO add method to the interpreter to interpret the empty node
 
     def parse(self):
+        print(self.tokenArray)
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
             return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
