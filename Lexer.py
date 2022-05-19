@@ -13,11 +13,25 @@ typeMultiply = "MULT"
 typePlus = "PLUS"
 typeMinus = "MINUS"
 typeAssign = "ASSGN"
+typeAnd = "AND"
+typeOr = "OR"
+
+#Logic operators
+
 typeEQL = "EQLS"
+typeLess = "LESS"
+typeGreater = "GRTR"
+typeGrtrEql = "GRTREQL"
+typeLessEql = "LESSEQL"
+
+logicOps = [typeEQL, typeLess, typeGreater, typeLessEql, typeGrtrEql]
 
 #Identifiers
 
 typeVar = "VAR"
+typeIf = "IF"
+typeElif = "ELIF"
+typeElse = "ELSE"
 
 #Separators
 
@@ -25,6 +39,8 @@ typeSemi = "SEMI"
 typeColon = "COLON"
 typeLPAR = "LPAR"
 typeRPAR = "RPAR"
+typeLBRACE = "LBRACE"
+typeRBRACE = "RBRACE"
 typeLine = "LINE"
 
 typeEndOfFile = "EOF"
@@ -75,6 +91,14 @@ class Lexer:
             self.currentChar = self.text[self.pos.index]
         else:
             self.currentChar = None
+
+    def skip(self):
+        self.pos.advance(self.currentChar)
+        self.pos.advance(self.currentChar)
+        if self.pos.index < len(self.text):
+            self.currentChar = self.text[self.pos.index]
+        else:
+            self.currentChar = None
     
     def peek(self):
         peekPos = self.pos.index + 1
@@ -92,7 +116,14 @@ class Lexer:
             self.advance()
             
         if varID.isalnum() == True:
-            return Token(typeVar, line, varID)
+            if varID == "IF":
+                return Token(typeIf, line, varID)
+            elif varID == "ELIF":
+                return Token(typeElif, line, varID)
+            elif varID == "ELSE":
+                return Token(typeElse, line, varID)
+            else:
+                return Token(typeVar, line, varID)
         else:
             return None
 
@@ -132,11 +163,9 @@ class Lexer:
 #GOAL FOR IMPROVEMENT: Rewrite the token identifier as a finite state machine when you add more token types
 #This is too redundant
 #Looking back at it, I have no clue what that means and I think the way it is right now is already a finite state machine
-
+#i dont think this is a finite state machine
     def makeTokens(self):
         tokenArray = []
-
-        # tokenArray.append(Token(typeStart, 0))
 
         while self.currentChar != None:
             if self.currentChar in " \t":
@@ -158,6 +187,12 @@ class Lexer:
                 self.advance()
             elif self.currentChar == ")":
                 tokenArray.append(Token(tokenType=typeRPAR, line=self.pos.line))
+                self.advance()
+            elif self.currentChar == "{":
+                tokenArray.append(Token(tokenType=typeLBRACE, line=self.pos.line))
+                self.advance()
+            elif self.currentChar == "}":
+                tokenArray.append(Token(tokenType=typeRBRACE, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "\n":
                 tokenArray.append(Token(tokenType=typeLine, line=self.pos.line))
@@ -183,13 +218,32 @@ class Lexer:
                     line = self.pos.line
                     self.advance()
                     return [], err.IllegalVariableDeclaration(line)
-
-            elif self.currentChar == "=" and self.peek == "=":
+            elif self.currentChar == "&" and self.peek() == "&":
+                tokenArray.append(Token(typeAnd, self.pos.line))
+                self.skip()
+            elif self.currentChar == "|" and self.peek() == "|":
+                tokenArray.append(Token(typeOr, self.pos.line))
+                self.skip()
+            elif self.currentChar == "=" and self.peek() == "=":
+                print("eql")
                 tokenArray.append(Token(typeEQL, self.pos.line))
-                self.advance()
-            elif self.currentChar == "=" and self.peek != "=":
+                self.skip()
+            elif self.currentChar == "<" and self.peek() == "=":
+                tokenArray.append(Token(typeLessEql, self.pos.line))
+                self.skip()
+            elif self.currentChar == ">" and self.peek() == "=":
+                tokenArray.append(Token(typeGrtrEql, self.pos.line))
+                self.skip()
+            elif self.currentChar == "<" and self.peek() != "=":
+                tokenArray.append(Token(typeLess, self.pos.line))
+                self.skip()
+            elif self.currentChar == ">" and self.peek() != "=":
+                tokenArray.append(Token(typeGreater, self.pos.line))
+                self.skip()
+            elif self.currentChar == "=" and self.peek() != "=":
+                print(self.peek())
                 tokenArray.append(Token(typeAssign, self.pos.line))
-                self.advance()
+                self.skip()
             else:
                 line = self.pos.line
                 self.advance()

@@ -15,5 +15,5 @@ def run(text):
     parser = prs.Parser(tokens)
     interpreter = intr.Interpreter(parser)
     result = interpreter.interpret()
-    
+
     return result, interpreter.tree.error
