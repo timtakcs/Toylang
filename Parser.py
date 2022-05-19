@@ -40,10 +40,16 @@ class CompoundStmtNode:
     def __init__(self):
         self.statements = []
 
+    def __repr__(self):
+        return f'({self.statements})'
+
 class IfNode:
     def __init__(self, cases, elseCase):
         self.cases = cases
         self.elseCase = elseCase
+    
+    def __repr__(self) -> str:
+        return f'({self.cases}, {self.elseCase})'
 
 class LogicNode:
     def __init__(self, left, operator, right):
@@ -150,7 +156,6 @@ class Parser:
 
         if self.curToken.type in lx.logicOps:
             left = check.register(self.logicExpression(left))
-            print("left", left)
 
         return check.success(left)
 
@@ -173,10 +178,8 @@ class Parser:
 
         check.register(self.advance())
 
-        condition = check.register(self.logicExpression())
-        print(self.curToken)
+        condition = check.register(self.expression())
         if check.error: 
-            print("1")
             return check
 
         if self.curToken.type != lx.typeLBRACE:
@@ -185,13 +188,16 @@ class Parser:
 
         check.register(self.advance())
         
-        if self.curToken.type == lx.typeLine:
+        if self.curToken.type == lx.typeSemi:
             check.register(self.advance())
 
-        expression = check.register(self.expression())
+        expression = check.register(self.compStatement())
         if check.error: 
             print("1")
             return check
+
+        if self.curToken.type == lx.typeSemi:
+            check.register(self.advance())
 
         if self.curToken.type != lx.typeRBRACE:
             return check.failure(err.InvalidSyntaxError("Invalid if expression declaration, expected }"
@@ -203,8 +209,9 @@ class Parser:
         #inside this loop is the same code as the if statement parsin
         #TODO abstract this to a function so that the code is readable
         while self.curToken.type == lx.typeElif:
-            check.register(self.logicExpression())
             check.register(self.advance())
+
+            condition = check.register(self.expression())
             
             if self.curToken.type != lx.typeLBRACE:
                 return check.failure(err.InvalidSyntaxError("Invalid elif statement declaration, expected {"
@@ -212,12 +219,8 @@ class Parser:
 
             check.register(self.advance())
 
-            if self.curToken.type == lx.typeLine:
-                check.register(self.advance())
-
-            expression = check.register(self.logicExpression())
+            expression = check.register(self.compStatement())
             if check.error: 
-                print("1")
                 return check
 
             if self.curToken.type != lx.typeRBRACE:
@@ -227,7 +230,7 @@ class Parser:
             cases.append((condition, expression))
             check.register(self.advance())
         
-        #same thing as before
+        #same thing as before but without the condition
         if self.curToken.type == lx.typeElse:
             check.register(self.advance())
             
@@ -236,19 +239,19 @@ class Parser:
                 , self.curToken.line))
 
             check.register(self.advance())
-            if self.curToken.type == lx.typeLine:
-                check.register(self.advance())
 
-            expression = check.register(self.expression())
+            expression = check.register(self.compStatement())
             if check.error: 
-                print("1")
                 return check
+
+            if self.curToken.type == lx.typeSemi:
+                check.register(self.advance())
 
             if self.curToken.type != lx.typeRBRACE:
                 return check.failure(err.InvalidSyntaxError("Invalid else expression declaration, expected }"
                 , self.curToken.line))
 
-            elseCase = (condition, expression)
+            elseCase = expression
             check.register(self.advance())
 
         return check.success(IfNode(cases, elseCase))
@@ -289,7 +292,8 @@ class Parser:
                 return check
         elif self.curToken.type == lx.typeIf:
             node = check.register(self.ifExpression())
-            if check.error():
+            if check.error:
+                print("error")
                 return check
         else:
             node = check.register(self.empty())
@@ -308,7 +312,7 @@ class Parser:
 
         statements.append(check.register(self.statement()))
 
-        while self.curToken.type == lx.typeLine:
+        while self.curToken.type == lx.typeSemi:
             check.register(self.advance())
             statements.append(check.register(self.statement()))
             if check.error:
@@ -346,7 +350,6 @@ class Parser:
     #TODO add method to the interpreter to interpret the empty node
 
     def parse(self):
-        print(self.tokenArray)
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
             return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))

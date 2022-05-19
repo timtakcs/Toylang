@@ -40,8 +40,10 @@ class Interpreter(Visitor):
 
     def visitNumNode(self, node):
         return node.value.value
-    
+        
+    #TODO this doesnt like assignign strings to variables, fix it
     def visitVarNode(self, node):
+        print("debug", self.variables[node.value])
         return self.variables[node.value]
         
     def visitAssgnNode(self, node):
@@ -70,6 +72,7 @@ class Interpreter(Visitor):
 
 
     def visitIfNode(self, node):
+        print("else case", node.elseCase)
         for condition, expr in node.cases:
             if self.visit(condition) == True:
                 return self.visit(expr)

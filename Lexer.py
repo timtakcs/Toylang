@@ -41,7 +41,7 @@ typeLPAR = "LPAR"
 typeRPAR = "RPAR"
 typeLBRACE = "LBRACE"
 typeRBRACE = "RBRACE"
-typeLine = "LINE"
+typeSemi = "SEMI"
 
 typeEndOfFile = "EOF"
 typeStart = "START"
@@ -168,7 +168,7 @@ class Lexer:
         tokenArray = []
 
         while self.currentChar != None:
-            if self.currentChar in " \t":
+            if self.currentChar in ("\t", " ", "\n"):
                 self.advance()
             elif self.currentChar == "+":
                 tokenArray.append(Token(tokenType=typePlus, line=self.pos.line))
@@ -194,8 +194,8 @@ class Lexer:
             elif self.currentChar == "}":
                 tokenArray.append(Token(tokenType=typeRBRACE, line=self.pos.line))
                 self.advance()
-            elif self.currentChar == "\n":
-                tokenArray.append(Token(tokenType=typeLine, line=self.pos.line))
+            elif self.currentChar == ";":
+                tokenArray.append(Token(tokenType=typeSemi, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "\"":
                 tokenArray.append(self.makeString(line=self.pos.line))
@@ -208,7 +208,6 @@ class Lexer:
                     line = self.pos.line
                     self.advance()
                     return [], err.IllegalFloatError(line)
-
             elif self.currentChar.isalnum():
                 var = self.makeVar(self.pos.line)
                 if var != None:
@@ -225,7 +224,6 @@ class Lexer:
                 tokenArray.append(Token(typeOr, self.pos.line))
                 self.skip()
             elif self.currentChar == "=" and self.peek() == "=":
-                print("eql")
                 tokenArray.append(Token(typeEQL, self.pos.line))
                 self.skip()
             elif self.currentChar == "<" and self.peek() == "=":
@@ -241,7 +239,6 @@ class Lexer:
                 tokenArray.append(Token(typeGreater, self.pos.line))
                 self.skip()
             elif self.currentChar == "=" and self.peek() != "=":
-                print(self.peek())
                 tokenArray.append(Token(typeAssign, self.pos.line))
                 self.skip()
             else:
