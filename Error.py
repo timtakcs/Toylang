@@ -24,3 +24,11 @@ class IllegalFloatError(Error):
 class InvalidSyntaxError(Error):
     def __init__(self, message, details):
         super().__init__(message, details)
+
+class InvalidString(Error):
+    def __init__(self, details):
+        super().__init__("String literal isn't terminated", details)
+
+class MissignVariableError(Error):
+    def __init__(self, details):
+        super().__init__("Variable has not been declared", details)

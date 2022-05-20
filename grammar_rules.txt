@@ -14,7 +14,11 @@ var: ID
 
 assignment: var ASSGN expression
 
-if: IF logic-expression (statement) (ELIF logic-expression (statement))*? (ELSE (statement))?
+if: IF logic-expression (compound_statement) (ELIF logic-expression (compound_statement))*? (ELSE (compound_statement))?
+
+for: FOR (assignment, expression, assignment) (compound_statement)
+
+while: WHILE condition (compound_statement)
 
 empty: //JS uses this
 
@@ -30,6 +34,14 @@ statement_list: statement
 compound_statement: statement_list
 
 program: compound_statement
+
+FOR (i = 0; i < N; i++) {
+      loop body
+}
+
+while condition {
+      loop body
+}
 
 
 

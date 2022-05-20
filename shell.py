@@ -3,20 +3,28 @@ import language as lang
 while True:
     text = input(">>> ")
 
-    text = """
-            var1 = 6 * (3 - 1);
-            var2 = 4 / 2 + 6;
+    # text = """
+    #         var1 = 6 * (3 - 1);
+    #         var2 = 4 / 2 + 6;
 
-            IF var1 < var2 {
-                var1 = 1;
+    #         IF var1 < var2 {
+    #             var2 = "Im greater";
+    #         }
+    #         ELIF var1 == var2 {
+    #             var1 = "were the same";
+    #             var2 = "were the same";
+    #         }
+    #         ELSE {
+    #             var1 = "im greater";
+    #         }"""
+
+    text = """
+            var1 = 1;
+
+            FOR (i = 1; i < 5; i = i + 1) {
+                var1 = var1 * i;
             }
-            ELIF var1 == var2 {
-                var1 = 0;
-                var2 = 0;
-            }
-            ELSE {
-                var2 = 1;
-            }"""
+            """
    
     result, error = lang.run(text)
 

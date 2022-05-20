@@ -1,6 +1,6 @@
-from numpy import isin
 import Parser as prs
 import Lexer as lx
+import Error as err
 
 #Visiting pattern
 #this is awful - do some string concetenation for functions
@@ -20,6 +20,8 @@ class Visitor(object):
             return self.visitIfNode(node)
         elif isinstance(node, prs.LogicNode):
             return self.visitLogicNode(node)
+        elif isinstance(node, prs.ForNode):
+            return self.visitForNode(node)
 
 #Interpreter
 
@@ -40,13 +42,15 @@ class Interpreter(Visitor):
 
     def visitNumNode(self, node):
         return node.value.value
-        
+
     #TODO this doesnt like assignign strings to variables, fix it
     def visitVarNode(self, node):
-        print("debug", self.variables[node.value])
+        if node.value not in self.variables:
+            return None, err.MissingVariableError(node.token.line)
         return self.variables[node.value]
         
     def visitAssgnNode(self, node):
+        print(node)
         self.variables[node.leftChild.value] = self.visit(node.rightChild)
 
     def visitCompNode(self, node):
@@ -70,14 +74,19 @@ class Interpreter(Visitor):
         elif node.operator.type == lx.typeGreater:
             return self.visit(node.leftChild) > self.visit(node.rightChild)
 
-
     def visitIfNode(self, node):
-        print("else case", node.elseCase)
         for condition, expr in node.cases:
             if self.visit(condition) == True:
                 return self.visit(expr)
         if node.elseCase != None:
             return self.visit(node.elseCase)
+
+    def visitForNode(self, node):
+        self.visit(node.counter)
+
+        while self.visit(node.limit) == True:
+            self.visit(node.body)
+            self.visit(node.step)
 
     def interpret(self):
         self.tree = self.parser.parse()

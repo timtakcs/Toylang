@@ -15,6 +15,10 @@ typeMinus = "MINUS"
 typeAssign = "ASSGN"
 typeAnd = "AND"
 typeOr = "OR"
+typeInc = "INC"
+typeDec = "DEC"
+typeIncBy = "INCBY"
+typeDecBy = "DECBY"
 
 #Logic operators
 
@@ -32,6 +36,20 @@ typeVar = "VAR"
 typeIf = "IF"
 typeElif = "ELIF"
 typeElse = "ELSE"
+
+#Loops
+
+typeFor = "FOR"
+typeWhile = "WHILE"
+
+#Types
+
+typeIntID = "IDINT"
+typeFloatID = "IDFLOAT"
+typeStringID = "IDSTRING"
+typeBoolID = "IDBOOL"
+
+types = [typeIntID, typeFloatID, typeStringID, typeBoolID]
 
 #Separators
 
@@ -108,6 +126,7 @@ class Lexer:
         
         return self.text[peekPos]
 
+#if the keywords are misspelled it can cause a whole bunch of problems
     def makeVar(self, line):
         varID = ''
 
@@ -122,6 +141,10 @@ class Lexer:
                 return Token(typeElif, line, varID)
             elif varID == "ELSE":
                 return Token(typeElse, line, varID)
+            elif varID == "FOR":
+                return Token(typeFor, line, varID)
+            elif varID == "WHILE":
+                return Token(typeFor, line, varID)
             else:
                 return Token(typeVar, line, varID)
         else:
@@ -155,6 +178,8 @@ class Lexer:
         stringToken = '' 
 
         while self.currentChar not in "\"":
+            if self.currentChar == ";":
+                return None
             stringToken += self.currentChar
             self.advance()
 
@@ -198,8 +223,14 @@ class Lexer:
                 tokenArray.append(Token(tokenType=typeSemi, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "\"":
-                tokenArray.append(self.makeString(line=self.pos.line))
-                self.advance()
+                string = self.makeString(self.pos.line)
+                if string != None:
+                    tokenArray.append(string)
+                    self.advance()
+                else:
+                    line = self.pos.line
+                    self.advance()
+                    return [], err.InvalidString(line - 1)
             elif self.currentChar in INTS:
                 num = self.makeNumber(line=self.pos.line)
                 if num != None:
@@ -241,9 +272,22 @@ class Lexer:
             elif self.currentChar == "=" and self.peek() != "=":
                 tokenArray.append(Token(typeAssign, self.pos.line))
                 self.skip()
+            elif self.currentChar == "+" and self.peek() == "+":
+                tokenArray.append(Token(typeInc, self.pos.line))
+                self.skip()
+            elif self.currentChar == "-" and self.peek() == "-":
+                tokenArray.append(Token(typeDec, self.pos.line))
+                self.skip()
+            elif self.currentChar == "+" and self.peek() == "=":
+                tokenArray.append(Token(typeIncBy, self.pos.line))
+                self.skip()
+            elif self.currentChar == "-" and self.peek() == "=":
+                tokenArray.append(Token(typeDecBy, self.pos.line))
+                self.skip()
             else:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
+        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

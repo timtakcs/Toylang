@@ -51,6 +51,20 @@ class IfNode:
     def __repr__(self) -> str:
         return f'({self.cases}, {self.elseCase})'
 
+class ForNode:
+    def __init__(self, counter, limit, step, body):
+        self.counter = counter
+        self.limit = limit
+        self.step = step
+        self.body = body
+    
+    def __repr__(self):
+        return f'({self.counter}, {self.limit}, {self.step}, {self.body})'
+
+class WhileNode:
+    def __init__(self, condition, body):
+        pass
+
 class LogicNode:
     def __init__(self, left, operator, right):
         self.leftChild = left
@@ -103,7 +117,7 @@ class Parser:
         check = ParseChecker()
         token = self.curToken
 
-        if token.type in (lx.typeInt, lx.typeFloat):
+        if token.type in (lx.typeInt, lx.typeFloat, lx.typeString):
             check.register(self.advance())
             return check.success(FactorNode(token))
 
@@ -206,7 +220,6 @@ class Parser:
         cases.append((condition, expression))
         check.register(self.advance())
 
-        #inside this loop is the same code as the if statement parsin
         #TODO abstract this to a function so that the code is readable
         while self.curToken.type == lx.typeElif:
             check.register(self.advance())
@@ -244,9 +257,6 @@ class Parser:
             if check.error: 
                 return check
 
-            if self.curToken.type == lx.typeSemi:
-                check.register(self.advance())
-
             if self.curToken.type != lx.typeRBRACE:
                 return check.failure(err.InvalidSyntaxError("Invalid else expression declaration, expected }"
                 , self.curToken.line))
@@ -255,6 +265,66 @@ class Parser:
             check.register(self.advance())
 
         return check.success(IfNode(cases, elseCase))
+
+    def forExpression(self):
+        check = ParseChecker()
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeLPAR:
+            return check.failure(err.InvalidSyntaxError("Invalid for expression declaration, expected ("
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        counter = check.register(self.assignment())
+        if check.error:
+            return check
+
+        if self.curToken.type != lx.typeSemi:
+            print(1)
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected counter, limit, and step"
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        limit = check.register(self.expression())
+        if check.error:
+            return check
+
+        if self.curToken.type != lx.typeSemi:
+            print(2)
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected counter, limit, and step"
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        step = check.register(self.assignment())
+        if check.error:
+            return check
+
+        if self.curToken.type != lx.typeRPAR:
+            return check.failure(err.InvalidSyntaxError("Expected )"
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeLBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected {"
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        body = check.register(self.compStatement())
+        if check.error:
+            return check
+
+        print("token = ",self.curToken)
+
+        if self.curToken.type != lx.typeRBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected }"
+            , self.curToken.line))
+        
+        return check.success(ForNode(counter, limit, step, body))
 
     def variable(self):
         check = ParseChecker()
@@ -293,7 +363,10 @@ class Parser:
         elif self.curToken.type == lx.typeIf:
             node = check.register(self.ifExpression())
             if check.error:
-                print("error")
+                return check
+        elif self.curToken.type == lx.typeFor:
+            node = check.register(self.forExpression())
+            if check.error:
                 return check
         else:
             node = check.register(self.empty())
@@ -347,7 +420,6 @@ class Parser:
 
     def empty(self):
         return EmptyOpNode()
-    #TODO add method to the interpreter to interpret the empty node
 
     def parse(self):
         result = self.program()
