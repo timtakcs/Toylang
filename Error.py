@@ -29,6 +29,6 @@ class InvalidString(Error):
     def __init__(self, details):
         super().__init__("String literal isn't terminated", details)
 
-class MissignVariableError(Error):
+class MissingVariableError(Error):
     def __init__(self, details):
         super().__init__("Variable has not been declared", details)

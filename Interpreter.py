@@ -1,3 +1,4 @@
+from multiprocessing import Condition
 import Parser as prs
 import Lexer as lx
 import Error as err
@@ -22,6 +23,10 @@ class Visitor(object):
             return self.visitLogicNode(node)
         elif isinstance(node, prs.ForNode):
             return self.visitForNode(node)
+        elif isinstance(node, prs.WhileNode):
+            return self.visitWhileNode(node)
+        elif isinstance(node, prs.DoubleOpNode):
+            return self.visitDoubleOpNode(node)
 
 #Interpreter
 
@@ -43,15 +48,21 @@ class Interpreter(Visitor):
     def visitNumNode(self, node):
         return node.value.value
 
-    #TODO this doesnt like assignign strings to variables, fix it
     def visitVarNode(self, node):
         if node.value not in self.variables:
             return None, err.MissingVariableError(node.token.line)
         return self.variables[node.value]
         
     def visitAssgnNode(self, node):
-        print(node)
         self.variables[node.leftChild.value] = self.visit(node.rightChild)
+
+    def visitDoubleOpNode(self, node):
+        if node.operator.type == lx.typeInc:
+            self.variables[node.var.value] += 1
+        else:
+            self.variables[node.var.value] -= 1
+
+    #TODO write the processing for non singular or factor increments
 
     def visitCompNode(self, node):
         results = []
@@ -87,6 +98,13 @@ class Interpreter(Visitor):
         while self.visit(node.limit) == True:
             self.visit(node.body)
             self.visit(node.step)
+
+    def visitWhileNode(self, node):
+        while 1 == 1:
+            if self.visit(node.condition) == True:
+                self.visit(node.body)
+            else:
+                break
 
     def interpret(self):
         self.tree = self.parser.parse()

@@ -20,6 +20,8 @@ typeDec = "DEC"
 typeIncBy = "INCBY"
 typeDecBy = "DECBY"
 
+incOps = [typeInc, typeDec, typeIncBy, typeDecBy]
+
 #Logic operators
 
 typeEQL = "EQLS"
@@ -36,6 +38,7 @@ typeVar = "VAR"
 typeIf = "IF"
 typeElif = "ELIF"
 typeElse = "ELSE"
+typeFunc = "FUNC"
 
 #Loops
 
@@ -53,13 +56,13 @@ types = [typeIntID, typeFloatID, typeStringID, typeBoolID]
 
 #Separators
 
-typeSemi = "SEMI"
 typeColon = "COLON"
 typeLPAR = "LPAR"
 typeRPAR = "RPAR"
 typeLBRACE = "LBRACE"
 typeRBRACE = "RBRACE"
 typeSemi = "SEMI"
+typeComma = "COMMA"
 
 typeEndOfFile = "EOF"
 typeStart = "START"
@@ -144,7 +147,9 @@ class Lexer:
             elif varID == "FOR":
                 return Token(typeFor, line, varID)
             elif varID == "WHILE":
-                return Token(typeFor, line, varID)
+                return Token(typeWhile, line, varID)
+            elif varID == "FUNC":
+                return Token(typeFunc, line, varID)
             else:
                 return Token(typeVar, line, varID)
         else:
@@ -195,10 +200,23 @@ class Lexer:
         while self.currentChar != None:
             if self.currentChar in ("\t", " ", "\n"):
                 self.advance()
-            elif self.currentChar == "+":
+            elif self.currentChar == "+" and self.peek() == "+":
+                tokenArray.append(Token(typeInc, self.pos.line))
+                self.skip()
+            elif self.currentChar == "-" and self.peek() == "-":
+                tokenArray.append(Token(typeDec, self.pos.line))
+                self.skip()
+            elif self.currentChar == "+" and self.peek() == "=":
+                tokenArray.append(Token(typeIncBy, self.pos.line))
+                self.skip()
+            elif self.currentChar == "-" and self.peek() == "=":
+                tokenArray.append(Token(typeDecBy, self.pos.line))
+                self.skip()
+            elif self.currentChar == "+" and self.peek() != "+":
+                print("peek", self.peek())
                 tokenArray.append(Token(tokenType=typePlus, line=self.pos.line))
                 self.advance()
-            elif self.currentChar == "-":
+            elif self.currentChar == "-" and self.peek() != "-":
                 tokenArray.append(Token(tokenType=typeMinus, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "*":
@@ -222,6 +240,9 @@ class Lexer:
             elif self.currentChar == ";":
                 tokenArray.append(Token(tokenType=typeSemi, line=self.pos.line))
                 self.advance()
+            elif self.currentChar == ",":
+                tokenArray.append(Token(tokenType=typeComma, line=self.pos.line))
+                self.advance()
             elif self.currentChar == "\"":
                 string = self.makeString(self.pos.line)
                 if string != None:
@@ -243,7 +264,6 @@ class Lexer:
                 var = self.makeVar(self.pos.line)
                 if var != None:
                     tokenArray.append(var)
-                    self.advance()
                 else:
                     line = self.pos.line
                     self.advance()
@@ -271,18 +291,6 @@ class Lexer:
                 self.skip()
             elif self.currentChar == "=" and self.peek() != "=":
                 tokenArray.append(Token(typeAssign, self.pos.line))
-                self.skip()
-            elif self.currentChar == "+" and self.peek() == "+":
-                tokenArray.append(Token(typeInc, self.pos.line))
-                self.skip()
-            elif self.currentChar == "-" and self.peek() == "-":
-                tokenArray.append(Token(typeDec, self.pos.line))
-                self.skip()
-            elif self.currentChar == "+" and self.peek() == "=":
-                tokenArray.append(Token(typeIncBy, self.pos.line))
-                self.skip()
-            elif self.currentChar == "-" and self.peek() == "=":
-                tokenArray.append(Token(typeDecBy, self.pos.line))
                 self.skip()
             else:
                 line = self.pos.line

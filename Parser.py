@@ -51,6 +51,23 @@ class IfNode:
     def __repr__(self) -> str:
         return f'({self.cases}, {self.elseCase})'
 
+class DoubleOpNode:
+    def __init__(self, var, operator):
+        self.var = var
+        self.operator = operator
+
+    def __repr__(self) -> str:
+        return f'({self.var}, {self.operator})'
+
+class DoubleOpByNode:
+    def __init__(self, var, operator, increment):
+        self.var = var
+        self.operator = operator
+        self.increment = increment
+
+    def __repr__(self) -> str:
+        return f'({self.var}, {self.operator}, {self.increment})'
+
 class ForNode:
     def __init__(self, counter, limit, step, body):
         self.counter = counter
@@ -63,7 +80,11 @@ class ForNode:
 
 class WhileNode:
     def __init__(self, condition, body):
-        pass
+        self.condition = condition
+        self.body = body
+
+    def __repr__(self):
+        return f'({self.condition}, {self.body})'
 
 class LogicNode:
     def __init__(self, left, operator, right):
@@ -73,6 +94,16 @@ class LogicNode:
 
     def __repr__(self):
         return f'({self.leftChild}, {self.operator}, {self.rightChild})'
+
+class FuncNode:
+    def __init__(self, name, args, body):
+        self.name = name
+        self.args = args
+        self.body = body
+
+    def __repr__(self) -> str:
+        return f'({self.name}, {self.args}, {self.body})'
+        
 
 class EmptyOpNode:
     pass
@@ -176,8 +207,6 @@ class Parser:
     #TODO && and || parsing
     def logicExpression(self, left):
         check = ParseChecker()
-        if check.error: 
-            return check
 
         operator = self.curToken
         check.register(self.advance())
@@ -185,20 +214,29 @@ class Parser:
         right = check.register(self.expression())
         return check.success(LogicNode(left, operator, right))
 
-    def ifExpression(self):
+    def incExpression(self, var):
         check = ParseChecker()
-        cases = []
-        elseCase = None
 
+        operator = self.curToken
         check.register(self.advance())
 
+        if self.curToken.type in (lx.typeSemi, lx.typeRPAR):
+            return check.success(DoubleOpNode(var, operator))
+
+        increment = check.register(self.factor())
+        if check.error:
+            return check
+
+        return check.success(DoubleOpByNode(var, operator, increment))
+
+    def ifProcessing(self, context, check):
         condition = check.register(self.expression())
         if check.error: 
             return check
 
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid if statement declaration, expected {"
-            , self.curToken.line))
+            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})') 
+            , self.curToken.line)
 
         check.register(self.advance())
         
@@ -207,40 +245,32 @@ class Parser:
 
         expression = check.register(self.compStatement())
         if check.error: 
-            print("1")
             return check
 
         if self.curToken.type == lx.typeSemi:
             check.register(self.advance())
 
         if self.curToken.type != lx.typeRBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid if expression declaration, expected }"
-            , self.curToken.line))
+            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})')
+            , self.curToken.line)
 
-        cases.append((condition, expression))
+        return (condition, expression)
+
+    def ifExpression(self):
+        check = ParseChecker()
+        cases = []
+        elseCase = None
+
+        check.register(self.advance())
+
+        cases.append((self.ifProcessing("if", check)))
         check.register(self.advance())
 
         #TODO abstract this to a function so that the code is readable
         while self.curToken.type == lx.typeElif:
             check.register(self.advance())
 
-            condition = check.register(self.expression())
-            
-            if self.curToken.type != lx.typeLBRACE:
-                return check.failure(err.InvalidSyntaxError("Invalid elif statement declaration, expected {"
-                , self.curToken.line))
-
-            check.register(self.advance())
-
-            expression = check.register(self.compStatement())
-            if check.error: 
-                return check
-
-            if self.curToken.type != lx.typeRBRACE:
-                return check.failure(err.InvalidSyntaxError("Invalid elif expression declaration, expected }"
-                , self.curToken.line))
-
-            cases.append((condition, expression))
+            cases.append(self.ifProcessing("elif", check))
             check.register(self.advance())
         
         #same thing as before but without the condition
@@ -281,8 +311,7 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeSemi:
-            print(1)
-            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected counter, limit, and step"
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step)"
             , self.curToken.line))
 
         check.register(self.advance())
@@ -292,8 +321,7 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeSemi:
-            print(2)
-            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected counter, limit, and step"
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step)"
             , self.curToken.line))
 
         check.register(self.advance())
@@ -301,6 +329,8 @@ class Parser:
         step = check.register(self.assignment())
         if check.error:
             return check
+
+        print('for curtoken', self.curToken)
 
         if self.curToken.type != lx.typeRPAR:
             return check.failure(err.InvalidSyntaxError("Expected )"
@@ -318,13 +348,34 @@ class Parser:
         if check.error:
             return check
 
-        print("token = ",self.curToken)
-
         if self.curToken.type != lx.typeRBRACE:
             return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected }"
             , self.curToken.line))
         
         return check.success(ForNode(counter, limit, step, body))
+
+    def whileExpression(self):
+        check = ParseChecker()
+        check.register(self.advance())
+
+        condition = check.register(self.expression())
+        if check.error:
+            return check
+        
+        if self.curToken.type != lx.typeLBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected {"
+            , self.curToken.line))
+
+        check.register(self.advance())
+        body = check.register(self.compStatement())
+        if check.error:
+            return check
+
+        if self.curToken.type != lx.typeRBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected }"
+            , self.curToken.line))
+
+        return check.success(WhileNode(condition, body))
 
     def variable(self):
         check = ParseChecker()
@@ -340,7 +391,12 @@ class Parser:
             return check
 
         operator = self.curToken
+
+        if operator.type in lx.incOps:
+            return check.register(self.incExpression(left))
+
         check.register(self.advance())
+        
         right = check.register(self.expression())
         if check.error:
             return check
@@ -348,6 +404,25 @@ class Parser:
         left = AssignmentNode(left, operator, right)
 
         return check.success(left)
+
+    def funcExpression(self):
+        pass
+        #advance
+        #register func variable (still need to think of how to do that)
+        #advance
+        #if curtoken isnt ( return error
+        #advance
+        #register arg as var
+        #while token is comma: register arg as var
+        #advance
+        #if token isnt ) return error
+        #advance
+        #if token isnt { return error
+        #advance
+        #register body as compNode
+        #if token isnt } return error
+        #advance?
+        #return funcNode(funcvar, args, body)
 
     def statement(self):
         check = ParseChecker()
@@ -368,6 +443,10 @@ class Parser:
             node = check.register(self.forExpression())
             if check.error:
                 return check
+        elif self.curToken.type == lx.typeWhile:
+            node = check.register(self.whileExpression())
+            if check.error:
+                return check
         else:
             node = check.register(self.empty())
             if check.error:
@@ -385,7 +464,7 @@ class Parser:
 
         statements.append(check.register(self.statement()))
 
-        while self.curToken.type == lx.typeSemi:
+        while self.curToken.type in (lx.typeSemi):
             check.register(self.advance())
             statements.append(check.register(self.statement()))
             if check.error:

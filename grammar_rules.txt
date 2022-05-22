@@ -13,12 +13,16 @@ logic-expression: expression LOGIC expression
 var: ID
 
 assignment: var ASSGN expression
+          | var INC
+          | var INCBY factor
 
 if: IF logic-expression (compound_statement) (ELIF logic-expression (compound_statement))*? (ELSE (compound_statement))?
 
 for: FOR (assignment, expression, assignment) (compound_statement)
 
 while: WHILE condition (compound_statement)
+
+func: func var ((argument)*) {compound_statement}
 
 empty: //JS uses this
 
