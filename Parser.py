@@ -101,9 +101,16 @@ class FuncNode:
         self.args = args
         self.body = body
 
+    # def __repr__(self) -> str:
+    #     return f'({self.name}, {self.args}, {self.body})'
+
+class FuncCallNode:
+    def __init__(self, func, args):
+        self.func = func
+        self.args = args
+
     def __repr__(self) -> str:
-        return f'({self.name}, {self.args}, {self.body})'
-        
+        return f'({self.func}, {self.args})'
 
 class EmptyOpNode:
     pass
@@ -406,23 +413,58 @@ class Parser:
         return check.success(left)
 
     def funcExpression(self):
-        pass
-        #advance
-        #register func variable (still need to think of how to do that)
-        #advance
-        #if curtoken isnt ( return error
-        #advance
-        #register arg as var
-        #while token is comma: register arg as var
-        #advance
-        #if token isnt ) return error
-        #advance
-        #if token isnt { return error
-        #advance
-        #register body as compNode
-        #if token isnt } return error
-        #advance?
-        #return funcNode(funcvar, args, body)
+        check = ParseChecker()
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeVar:
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected an identifier"
+            , self.curToken.line))
+
+        var = self.curToken
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeLPAR:
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected ("
+            , self.curToken.line))
+
+        check.register(self.advance())
+        args = []
+
+        if self.curToken.type == lx.typeVar:
+            args.append(self.curToken)
+
+        check.register(self.advance())
+
+        while self.curToken.type == lx.typeComma:
+            check.register(self.advance())
+            if self.curToken.type != lx.typeVar:
+                return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected ,"
+                , self.curToken.line))
+
+            args.append(self.curToken)
+            check.register(self.advance())
+
+        if self.curToken.type != lx.typeRPAR:
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected )"
+            , self.curToken.line))
+
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeLBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected }"
+            , self.curToken.line))
+
+        check.register(self.advance())
+        body = check.register(self.compStatement())
+
+        if check.error:
+            return check
+
+        if self.curToken.type != lx.typeRBRACE:
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected }"
+            , self.curToken.line))
+
+        return check.success(FuncNode(var, args, body))
 
     def statement(self):
         check = ParseChecker()
@@ -447,6 +489,12 @@ class Parser:
             node = check.register(self.whileExpression())
             if check.error:
                 return check
+        elif self.curToken.type == lx.typeFunc:
+            print("func expression recognized")
+            node = check.register(self.funcExpression())
+            if check.error:
+                return check
+            print("node =", node)
         else:
             node = check.register(self.empty())
             if check.error:
@@ -483,6 +531,8 @@ class Parser:
 
         for node in nodes:
             rootStmtNode.statements.append(node)
+
+        print("the node =", rootStmtNode)
 
         return check.success(rootStmtNode)
 

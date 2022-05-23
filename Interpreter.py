@@ -2,6 +2,7 @@ from multiprocessing import Condition
 import Parser as prs
 import Lexer as lx
 import Error as err
+import SymbolTable as smb
 
 #Visiting pattern
 #this is awful - do some string concetenation for functions
@@ -27,13 +28,15 @@ class Visitor(object):
             return self.visitWhileNode(node)
         elif isinstance(node, prs.DoubleOpNode):
             return self.visitDoubleOpNode(node)
+        elif isinstance(node, prs.FuncNode):
+            return self.visitFuncNode(node)
 
 #Interpreter
 
 class Interpreter(Visitor):
     def __init__(self, parser):
         self.parser = parser
-        self.variables = {}
+        self.table = smb.SymbolTable(None)
 
     def visitOpNode(self, node):
         if node.operator.type == lx.typePlus:
@@ -49,18 +52,15 @@ class Interpreter(Visitor):
         return node.value.value
 
     def visitVarNode(self, node):
-        if node.value not in self.variables:
+        if self.table.getVar(node.value) == None:
             return None, err.MissingVariableError(node.token.line)
-        return self.variables[node.value]
+        return self.table.getVar(node.value)
         
     def visitAssgnNode(self, node):
-        self.variables[node.leftChild.value] = self.visit(node.rightChild)
+        self.table.addVar(node.leftChild.value, self.visit(node.rightChild))
 
     def visitDoubleOpNode(self, node):
-        if node.operator.type == lx.typeInc:
-            self.variables[node.var.value] += 1
-        else:
-            self.variables[node.var.value] -= 1
+        self.table.incVar(node.var.value, node.operator)
 
     #TODO write the processing for non singular or factor increments
 
@@ -99,6 +99,11 @@ class Interpreter(Visitor):
             self.visit(node.body)
             self.visit(node.step)
 
+    def visitFuncNode(self, node):
+        print("there is a func node")
+        print(node)
+        self.table.addFunc(node.name, node)
+
     def visitWhileNode(self, node):
         while 1 == 1:
             if self.visit(node.condition) == True:
@@ -110,4 +115,4 @@ class Interpreter(Visitor):
         self.tree = self.parser.parse()
         print(self.tree)
         self.visit(self.tree.node)
-        return self.variables
+        return self.table
