@@ -101,16 +101,16 @@ class FuncNode:
         self.args = args
         self.body = body
 
-    # def __repr__(self) -> str:
-    #     return f'({self.name}, {self.args}, {self.body})'
+    def __repr__(self) -> str:
+        return f'({self.name}, {self.args}, {self.body})'
 
 class FuncCallNode:
-    def __init__(self, func, args):
-        self.func = func
+    def __init__(self, funcName, args):
+        self.funcName = funcName
         self.args = args
 
     def __repr__(self) -> str:
-        return f'({self.func}, {self.args})'
+        return f'({self.funcName}, {self.args})'
 
 class EmptyOpNode:
     pass
@@ -208,6 +208,8 @@ class Parser:
 
         if self.curToken.type in lx.logicOps:
             left = check.register(self.logicExpression(left))
+        elif self.curToken.type in lx.typeLPAR:
+            left = check.register(self.funcCall(left))
 
         return check.success(left)
 
@@ -261,6 +263,8 @@ class Parser:
             return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})')
             , self.curToken.line)
 
+        check.register(self.advance())
+
         return (condition, expression)
 
     def ifExpression(self):
@@ -299,6 +303,7 @@ class Parser:
                 , self.curToken.line))
 
             elseCase = expression
+
             check.register(self.advance())
 
         return check.success(IfNode(cases, elseCase))
@@ -337,8 +342,6 @@ class Parser:
         if check.error:
             return check
 
-        print('for curtoken', self.curToken)
-
         if self.curToken.type != lx.typeRPAR:
             return check.failure(err.InvalidSyntaxError("Expected )"
             , self.curToken.line))
@@ -358,6 +361,8 @@ class Parser:
         if self.curToken.type != lx.typeRBRACE:
             return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected }"
             , self.curToken.line))
+
+        check.register(self.advance())
         
         return check.success(ForNode(counter, limit, step, body))
 
@@ -382,6 +387,8 @@ class Parser:
             return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected }"
             , self.curToken.line))
 
+        check.register(self.advance())
+
         return check.success(WhileNode(condition, body))
 
     def variable(self):
@@ -401,6 +408,8 @@ class Parser:
 
         if operator.type in lx.incOps:
             return check.register(self.incExpression(left))
+        elif operator.type == lx.typeLPAR:
+            return check.register(self.funcCall(left))
 
         check.register(self.advance())
         
@@ -420,7 +429,7 @@ class Parser:
             return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected an identifier"
             , self.curToken.line))
 
-        var = self.curToken
+        var = self.curToken.value
         check.register(self.advance())
 
         if self.curToken.type != lx.typeLPAR:
@@ -463,8 +472,37 @@ class Parser:
         if self.curToken.type != lx.typeRBRACE:
             return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected }"
             , self.curToken.line))
+        
+        check.register(self.advance())
 
         return check.success(FuncNode(var, args, body))
+
+    def funcCall(self, var):
+        check = ParseChecker()
+        args = []
+
+        check.register(self.advance())
+
+        if self.curToken.type != lx.typeRPAR:
+            arg = check.register(self.expression())
+            args.append(arg)
+            if check.error:
+                return check
+        
+        while self.curToken.type == lx.typeComma:
+            check.register(self.advance())
+            arg = check.register(self.expression())
+            args.append(arg)
+            if check.error:
+                return check
+
+        if self.curToken.type != lx.typeRPAR:
+            return check.failure(err.InvalidSyntaxError("Invalid function call, expected )"
+            , self.curToken.line))
+        
+        check.register(self.advance())
+       
+        return check.success(FuncCallNode(var, args))
 
     def statement(self):
         check = ParseChecker()
@@ -490,11 +528,9 @@ class Parser:
             if check.error:
                 return check
         elif self.curToken.type == lx.typeFunc:
-            print("func expression recognized")
             node = check.register(self.funcExpression())
             if check.error:
                 return check
-            print("node =", node)
         else:
             node = check.register(self.empty())
             if check.error:
@@ -502,6 +538,8 @@ class Parser:
 
         return check.success(node)
 
+#I am now realizing that the statement list node is redundant and adds an unneccessary step, you can put this code
+#into the comp statement body
     def statementList(self):
         check = ParseChecker()
 
@@ -531,8 +569,6 @@ class Parser:
 
         for node in nodes:
             rootStmtNode.statements.append(node)
-
-        print("the node =", rootStmtNode)
 
         return check.success(rootStmtNode)
 

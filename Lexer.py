@@ -213,7 +213,6 @@ class Lexer:
                 tokenArray.append(Token(typeDecBy, self.pos.line))
                 self.skip()
             elif self.currentChar == "+" and self.peek() != "+":
-                print("peek", self.peek())
                 tokenArray.append(Token(tokenType=typePlus, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "-" and self.peek() != "-":
@@ -296,6 +295,5 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
-        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

@@ -1,4 +1,6 @@
+from ast import Pass
 from multiprocessing import Condition
+from symtable import Symbol
 import Parser as prs
 import Lexer as lx
 import Error as err
@@ -30,13 +32,15 @@ class Visitor(object):
             return self.visitDoubleOpNode(node)
         elif isinstance(node, prs.FuncNode):
             return self.visitFuncNode(node)
+        elif isinstance(node, prs.FuncCallNode):
+            return self.visitFuncCallNode(node)
 
 #Interpreter
 
 class Interpreter(Visitor):
-    def __init__(self, parser):
+    def __init__(self, parser, table):
         self.parser = parser
-        self.table = smb.SymbolTable(None)
+        self.table = table
 
     def visitOpNode(self, node):
         if node.operator.type == lx.typePlus:
@@ -99,11 +103,6 @@ class Interpreter(Visitor):
             self.visit(node.body)
             self.visit(node.step)
 
-    def visitFuncNode(self, node):
-        print("there is a func node")
-        print(node)
-        self.table.addFunc(node.name, node)
-
     def visitWhileNode(self, node):
         while 1 == 1:
             if self.visit(node.condition) == True:
@@ -111,8 +110,31 @@ class Interpreter(Visitor):
             else:
                 break
 
+    def visitFuncNode(self, node):
+        self.table.addFunc(node.name, node)
+
+    def execute(self, func, args, table):
+        newTable = table
+        interpreter = Interpreter(self.parser, newTable)
+        argNames = func.args
+
+        if len(argNames) != len(args):
+            return f'(Function expected {len(argNames)} arguments, recieved {len(args)})'
+
+        for i in range(len(args)):
+            newTable.addVar(argNames[i].value, args[i].value.value)
+
+        return interpreter.visit(func.body)
+
+    def visitFuncCallNode(self, node):
+        func = self.table.getFunc(node.funcName.value)
+        args = node.args
+        newTable = smb.SymbolTable(self.table)
+        result = self.execute(func, args, newTable)
+        print(newTable)
+        return result
+
     def interpret(self):
         self.tree = self.parser.parse()
-        print(self.tree)
         self.visit(self.tree.node)
         return self.table

@@ -4,19 +4,19 @@ while True:
     text = input(">>> ")
 
     # text = """
-    #         var1 = 6 * (3 - 1);
+    #         var1 = 5 * (3 - 1);
     #         var2 = 4 / 2 + 6;
 
     #         IF var1 > var2 {
-    #             var2 = "Im greater";
-    #         }
+    #             var1 = "Im greater";
+    #         };
     #         ELIF var1 == var2 {
     #             var1 = "were the same";
     #             var2 = "were the same";
-    #         }
+    #         };
     #         ELSE {
-    #             var1 = "im greater";
-    #         }
+    #             var2 = "im greater";
+    #         };
     #         """
 
     # text = """
@@ -24,7 +24,7 @@ while True:
 
     #         FOR (i = 0; i < 10; i++) {
     #             var1 = var1 + i;
-    #         }
+    #         };
     # """
 
     # text = """
@@ -33,7 +33,7 @@ while True:
 
     #         WHILE var1 < var2 {
     #             var1 = var1 + 1;
-    #         }
+    #         };
     # """
     # text = """
     #         var1 = 1;
@@ -42,8 +42,12 @@ while True:
 
     text = """
             FUNC add (num1, num2) {
-                num3 = num1 + num2;
-            }
+                FOR (i = 0; i < num2; i++) {
+                    num1 = num1 + i;
+                };
+            };
+
+            add(1, 10);
     """
    
     result, error = lang.run(text)

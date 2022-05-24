@@ -17,14 +17,14 @@ class SymbolTable:
     def addVar(self, name, value):
         self.variables[name] = value
 
-    def getValue(self, name):
+    def getVar(self, name):
         return self.variables[name]
 
     def incVar(self, name, op):
         if op.type == lx.typeInc:
             self.variables[name] += 1
         else:
-            self.variables -= 1
+            self.variables[name] -= 1
 
     def addFunc(self, name, function):
         self.functions[name] = Function(function)
