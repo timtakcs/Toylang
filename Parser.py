@@ -68,6 +68,13 @@ class DoubleOpByNode:
     def __repr__(self) -> str:
         return f'({self.var}, {self.operator}, {self.increment})'
 
+class ArrayNode:
+    def __init__(self, elements) -> None:
+        self.elements = elements
+
+    def __repr__(self) -> str:
+        return f'({self.elements})'
+
 class ForNode:
     def __init__(self, counter, limit, step, body):
         self.counter = counter
@@ -112,6 +119,13 @@ class FuncCallNode:
     def __repr__(self) -> str:
         return f'({self.funcName}, {self.args})'
 
+class ReturnNode:
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __repr__(self):
+        return f'({self.expression})'
+
 class EmptyOpNode:
     pass
 
@@ -122,12 +136,12 @@ class ParseChecker:
         self.error = None
         self.node = None
 
-    def register(self, res):
-        if isinstance(res, ParseChecker):
-            if res.error:
-                self.error = res.error
-            return res.node
-        return res
+    def register(self, check):
+        if isinstance(check, ParseChecker):
+            if check.error:
+                self.error = check.error
+            return check.node
+        return check
 
     def success(self, node):
         self.node = node
@@ -213,6 +227,34 @@ class Parser:
 
         return check.success(left)
 
+    def arrayExpression(self):
+        check = ParseChecker()
+        check.register(self.advance())
+        elements = []
+
+        if self.curToken == lx.typeRSQ:
+            return check.success(ArrayNode(elements))
+        
+        expr = check.register(self.expression())
+        if check.error:
+            return check
+        elements.append(expr)
+
+        check.register(self.advance())
+
+        while self.curToken == lx.typeComma:
+            expr = check.register(self.expression)
+            if check.error:
+                return check
+            elements.append(expr)
+            check.register(self.advance())
+
+        if self.curToken != lx.typeRSQ:
+            return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ]", self.curToken.line))
+
+        check.register(self.advance())
+        return check.success(ArrayNode(elements))
+
     #TODO && and || parsing
     def logicExpression(self, left):
         check = ParseChecker()
@@ -237,6 +279,17 @@ class Parser:
             return check
 
         return check.success(DoubleOpByNode(var, operator, increment))
+
+    def returnExpression(self):
+        check = ParseChecker()
+
+        check.register(self.advance())
+        
+        expr = check.register(self.expression())
+        if check.error:
+            return check
+
+        return ReturnNode(expr)
 
     def ifProcessing(self, context, check):
         condition = check.register(self.expression())
@@ -501,6 +554,8 @@ class Parser:
             , self.curToken.line))
         
         check.register(self.advance())
+
+        print("CALL NODE", FuncCallNode(var, args))
        
         return check.success(FuncCallNode(var, args))
 
@@ -529,6 +584,10 @@ class Parser:
                 return check
         elif self.curToken.type == lx.typeFunc:
             node = check.register(self.funcExpression())
+            if check.error:
+                return check
+        elif self.curToken.type == lx.typeReturn:
+            node = check.register(self.returnExpression())
             if check.error:
                 return check
         else:

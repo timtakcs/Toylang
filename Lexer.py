@@ -19,6 +19,7 @@ typeInc = "INC"
 typeDec = "DEC"
 typeIncBy = "INCBY"
 typeDecBy = "DECBY"
+typeReturn = "RETURN"
 
 incOps = [typeInc, typeDec, typeIncBy, typeDecBy]
 
@@ -61,6 +62,8 @@ typeLPAR = "LPAR"
 typeRPAR = "RPAR"
 typeLBRACE = "LBRACE"
 typeRBRACE = "RBRACE"
+typeLSQ = "LSQ"
+typeRSQ = "RSQ"
 typeSemi = "SEMI"
 typeComma = "COMMA"
 
@@ -150,6 +153,8 @@ class Lexer:
                 return Token(typeWhile, line, varID)
             elif varID == "FUNC":
                 return Token(typeFunc, line, varID)
+            elif varID == "RETURN":
+                return Token(typeReturn, line, varID)
             else:
                 return Token(typeVar, line, varID)
         else:
@@ -230,6 +235,12 @@ class Lexer:
             elif self.currentChar == ")":
                 tokenArray.append(Token(tokenType=typeRPAR, line=self.pos.line))
                 self.advance()
+            elif self.currentChar == "[":
+                tokenArray.append(Token(tokenType=typeLSQ, line=self.pos.line))
+                self.advance()
+            elif self.currentChar == "]":
+                tokenArray.append(Token(tokenType=typeRSQ, line=self.pos.line))
+                self.advance()
             elif self.currentChar == "{":
                 tokenArray.append(Token(tokenType=typeLBRACE, line=self.pos.line))
                 self.advance()
@@ -295,5 +306,6 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
+        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

@@ -40,14 +40,24 @@ while True:
     #         var1++;
     # """
 
-    text = """
-            FUNC add (num1, num2) {
-                FOR (i = 0; i < num2; i++) {
-                    num1 = num1 + i;
-                };
-            };
+    #Function calls and declaration
 
-            add(1, 10);
+    # text = """
+    #         FUNC fact(n) {
+    #             num = 1;
+
+    #             FOR (i = 1; i < n; i++){
+    #                 num = num * i;
+    #             };
+
+    #             RETURN num
+    #         };
+
+    #         result = fact(5);
+    # """
+
+    text = """
+        array = [2, 4, 5, 8, 9, 0];
     """
    
     result, error = lang.run(text)

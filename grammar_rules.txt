@@ -10,6 +10,8 @@ expression: term ((MULT|DIV) term)*
 
 logic-expression: expression LOGIC expression
 
+arr-expression: [expression (, expression)*?]
+
 var: ID
 
 assignment: var ASSGN expression
