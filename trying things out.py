@@ -1,4 +1,2 @@
-var1 = 1
-var1 = "test"
-print(var1)
+print(652 + 311 + 34 + 36 + 214 + 21 + 68)
 

@@ -12,7 +12,6 @@ class SymbolTable:
     def __init__(self, parent):
         self.parent = parent
         self.variables = {}
-        self.functions = {}
 
     def addVar(self, name, value):
         self.variables[name] = value
@@ -27,10 +26,14 @@ class SymbolTable:
             self.variables[name] -= 1
 
     def addFunc(self, name, function):
-        self.functions[name] = Function(function)
+        self.variables[name] = Function(function)
 
     def getFunc(self, name):
-        return self.functions[name]
+        if self.parent:
+            return self.parent.variables[name]
+        else:
+            print(self.variables)
+            return self.variables[name]
 
     def __repr__(self):
-        return f'({self.parent}, {self.variables},{self.functions})'
+        return f'({self.parent}, {self.variables})'

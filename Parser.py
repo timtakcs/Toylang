@@ -253,6 +253,7 @@ class Parser:
             return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ]", self.curToken.line))
 
         check.register(self.advance())
+        
         return check.success(ArrayNode(elements))
 
     #TODO && and || parsing
