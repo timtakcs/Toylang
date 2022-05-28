@@ -32,7 +32,6 @@ class SymbolTable:
         if self.parent:
             return self.parent.variables[name]
         else:
-            print(self.variables)
             return self.variables[name]
 
     def __repr__(self):

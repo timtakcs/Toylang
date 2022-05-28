@@ -193,7 +193,6 @@ class Interpreter(Visitor):
         check.register(interpreter.visit(func.body))
 
         if check.shouldReturn():
-            print("yes")
             return check
 
         return newTable
