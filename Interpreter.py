@@ -9,35 +9,43 @@ import SymbolTable as smb
 #Visiting pattern
 #this is awful - do some string concetenation for functions
 class Visitor(object):
+    # def visit(self, node):
+    #     if isinstance(node, prs.FactorNode):
+    #         return self.visitNumNode(node)
+    #     elif isinstance(node, prs.OperatorNode):
+    #         return self.visitOpNode(node)
+    #     elif isinstance(node, prs.CompoundStmtNode):
+    #         return self.visitCompNode(node)
+    #     elif isinstance(node, prs.AssignmentNode):
+    #         return self.visitAssgnNode(node)
+    #     elif isinstance(node, prs.VariableNode):
+    #         return self.visitVarNode(node)
+    #     elif isinstance(node, prs.IfNode):
+    #         return self.visitIfNode(node)
+    #     elif isinstance(node, prs.LogicNode):
+    #         return self.visitLogicNode(node)
+    #     elif isinstance(node, prs.ForNode):
+    #         return self.visitForNode(node)
+    #     elif isinstance(node, prs.WhileNode):
+    #         return self.visitWhileNode(node)
+    #     elif isinstance(node, prs.DoubleOpNode):
+    #         return self.visitDoubleOpNode(node)
+    #     elif isinstance(node, prs.FuncNode):
+    #         return self.visitFuncNode(node)
+    #     elif isinstance(node, prs.FuncCallNode):
+    #         return self.visitFuncCallNode(node)
+    #     elif isinstance(node, prs.ReturnNode):
+    #         return self.visitReturnNode(node)
+    #     elif isinstance(node, prs.ArrayNode):
+    #         return self.visitArrayNode(node)
+
     def visit(self, node):
-        if isinstance(node, prs.FactorNode):
-            return self.visitNumNode(node)
-        elif isinstance(node, prs.OperatorNode):
-            return self.visitOpNode(node)
-        elif isinstance(node, prs.CompoundStmtNode):
-            return self.visitCompNode(node)
-        elif isinstance(node, prs.AssignmentNode):
-            return self.visitAssgnNode(node)
-        elif isinstance(node, prs.VariableNode):
-            return self.visitVarNode(node)
-        elif isinstance(node, prs.IfNode):
-            return self.visitIfNode(node)
-        elif isinstance(node, prs.LogicNode):
-            return self.visitLogicNode(node)
-        elif isinstance(node, prs.ForNode):
-            return self.visitForNode(node)
-        elif isinstance(node, prs.WhileNode):
-            return self.visitWhileNode(node)
-        elif isinstance(node, prs.DoubleOpNode):
-            return self.visitDoubleOpNode(node)
-        elif isinstance(node, prs.FuncNode):
-            return self.visitFuncNode(node)
-        elif isinstance(node, prs.FuncCallNode):
-            return self.visitFuncCallNode(node)
-        elif isinstance(node, prs.ReturnNode):
-            return self.visitReturnNode(node)
-        elif isinstance(node, prs.ArrayNode):
-            return self.visitArrayNode(node)
+        method_name = 'visit' + type(node).__name__
+        visitor = getattr(self, method_name, self.generic_visit)
+        return visitor(node)
+
+    def generic_visit(self, node):
+        raise Exception('No visit{} method'.format(type(node).__name__))
 
 #Run Time Result
 class RunChecker:
@@ -83,7 +91,7 @@ class Interpreter(Visitor):
         self.parser = parser
         self.table = table
 
-    def visitOpNode(self, node):
+    def visitOperatorNode(self, node):
         check = RunChecker()
         if node.operator.type == lx.typePlus:
             return check.register(self.visit(node.leftChild)) + check.register(self.visit(node.rightChild))
@@ -94,15 +102,15 @@ class Interpreter(Visitor):
         elif node.operator.type == lx.typeDivide:
             return check.register(self.visit(node.leftChild)) / check.register(self.visit(node.rightChild))
 
-    def visitNumNode(self, node):
+    def visitFactorNode(self, node):
         check = RunChecker()
         return check.success(node.value.value)
 
-    def visitVarNode(self, node):
+    def visitVariableNode(self, node):
         check = RunChecker()
         return check.success(self.table.getVar(node.value))
         
-    def visitAssgnNode(self, node):
+    def visitAssignmentNode(self, node):
         check = RunChecker()
         self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)))
 
@@ -113,7 +121,7 @@ class Interpreter(Visitor):
 
     #TODO write the processing for non singular or factor increments
 
-    def visitCompNode(self, node):
+    def visitCompoundStmtNode(self, node):
         check = RunChecker()
         results = []
 
@@ -209,6 +217,9 @@ class Interpreter(Visitor):
         newTable = smb.SymbolTable(self.table)
         result = check.register(self.execute(func, args, newTable))
         return result
+
+    def visitEmptyOpNode(self, node):
+        pass
 
     def interpret(self):
         self.tree = self.parser.parse()
