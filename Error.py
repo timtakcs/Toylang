@@ -32,3 +32,7 @@ class InvalidString(Error):
 class MissingVariableError(Error):
     def __init__(self, details):
         super().__init__("Variable has not been declared", details)
+
+class IndexOutOfBoundsError(Error):
+    def __init__(self, details):
+        super().__init__("Index out of bounds: ", details)

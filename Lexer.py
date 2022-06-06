@@ -306,5 +306,6 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
+        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

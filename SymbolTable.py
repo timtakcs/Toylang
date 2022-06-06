@@ -1,4 +1,5 @@
 import Lexer as lx
+import Error as err
 
 class Function:
     def __init__(self, node) -> None:
@@ -7,6 +8,29 @@ class Function:
 
     def __repr__(self) -> str:
         return "Function" 
+
+class Array:
+    def __init__(self, elements):
+        self.elements = elements
+
+    def append(self, element):
+        newList = self.copy()
+        newList.append(element)
+        return newList
+
+    def getElement(self, index):
+        if isinstance(index, int):
+            try:
+                return self.elements[index]
+            except:
+                return err.IndexOutOfBoundsError(f'{index} out of bounds for length {len(self.elements)}')
+
+    def copy(self):
+        newList = Array(self.elements[:])
+        return newList
+
+    def __repr__(self) -> str:
+        return f'({self.elements})'
 
 class SymbolTable:
     def __init__(self, parent):
@@ -27,6 +51,9 @@ class SymbolTable:
 
     def addFunc(self, name, function):
         self.variables[name] = Function(function)
+
+    def addArr(self, name, array):
+        self.variables[name] = Array(array)
 
     def getFunc(self, name):
         if self.parent:

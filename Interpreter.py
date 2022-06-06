@@ -150,6 +150,10 @@ class Interpreter(Visitor):
         if node.elseCase != None:
             return check.register(self.visit(node.elseCase))
 
+    def visitArrayNode(self, node):
+        print(self.table.variables)
+        self.table.addArr(node.name, node.elements)
+
     def visitForNode(self, node):
         check = RunChecker()
         check.register(self.visit(node.counter))

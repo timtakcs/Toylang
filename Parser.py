@@ -69,11 +69,12 @@ class DoubleOpByNode:
         return f'({self.var}, {self.operator}, {self.increment})'
 
 class ArrayNode:
-    def __init__(self, elements) -> None:
+    def __init__(self, name, elements) -> None:
         self.elements = elements
+        self.name = name
 
     def __repr__(self) -> str:
-        return f'({self.elements})'
+        return f'({self.name}, {self.elements})'
 
 class ForNode:
     def __init__(self, counter, limit, step, body):
@@ -227,34 +228,35 @@ class Parser:
 
         return check.success(left)
 
-    def arrayExpression(self):
+    def arrayExpression(self, left):
         check = ParseChecker()
+        print(self.curToken)
         check.register(self.advance())
         elements = []
 
-        if self.curToken == lx.typeRSQ:
+        if self.curToken.type == lx.typeRSQ:
             return check.success(ArrayNode(elements))
         
         expr = check.register(self.expression())
+        
         if check.error:
             return check
         elements.append(expr)
 
-        check.register(self.advance())
-
-        while self.curToken == lx.typeComma:
-            expr = check.register(self.expression)
+        while self.curToken.type == lx.typeComma:
+            check.register(self.advance())
+            expr = check.register(self.expression())
             if check.error:
                 return check
             elements.append(expr)
-            check.register(self.advance())
+            
 
-        if self.curToken != lx.typeRSQ:
+        if self.curToken.type != lx.typeRSQ:
             return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ]", self.curToken.line))
 
         check.register(self.advance())
 
-        return check.success(ArrayNode(elements))
+        return check.success(ArrayNode(left.value, elements))
 
     #TODO && and || parsing
     def logicExpression(self, left):
@@ -466,6 +468,9 @@ class Parser:
             return check.register(self.funcCall(left))
 
         check.register(self.advance())
+
+        if self.curToken.type == lx.typeLSQ:
+            return check.register(self.arrayExpression(left))
         
         right = check.register(self.expression())
         if check.error:

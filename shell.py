@@ -35,6 +35,7 @@ while True:
     #             var1 = var1 + 1;
     #         };
     # """
+
     # text = """
     #         var1 = 1;
     #         var1++;
@@ -42,23 +43,24 @@ while True:
 
     #Function calls and declaration
 
-    text = """
-            FUNC fact(n) {
-                num = 1;
-
-                FOR (i = 1; i < n; i++){
-                    num = num * i;
-                };
-
-                RETURN num
-            };
-
-            result = fact(5);
-    """
-
     # text = """
-    #     array = [2, 4, 5, 8, 9, 0];
+    #         FUNC fact(n) {
+    #             num = 1;
+
+    #             FOR (i = 1; i < n; i++){
+    #                 num = num * i;
+    #             };
+
+    #             RETURN num
+    #         };
+
+    #         result = fact(5);
     # """
+
+    text = """
+        num = 34;
+        array = [2, 4, 5, 8, 9, 0];
+    """
    
     result, error = lang.run(text)
 
