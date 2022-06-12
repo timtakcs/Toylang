@@ -76,6 +76,14 @@ class ArrayNode:
     def __repr__(self) -> str:
         return f'({self.name}, {self.elements})'
 
+class IndexNode:
+    def __init__(self, array, index):
+        self.array = array
+        self.index = index
+
+    def __repr__(self) -> str:
+        return f'({self.array}, {self.index})'
+    
 class ForNode:
     def __init__(self, counter, limit, step, body):
         self.counter = counter
@@ -223,8 +231,10 @@ class Parser:
 
         if self.curToken.type in lx.logicOps:
             left = check.register(self.logicExpression(left))
-        elif self.curToken.type in lx.typeLPAR:
+        elif self.curToken.type == lx.typeLPAR:
             left = check.register(self.funcCall(left))
+        elif self.curToken.type == lx.typeLSQ:
+            left = check.register(self.arrayIndexExpression(left))
 
         return check.success(left)
 
@@ -257,6 +267,22 @@ class Parser:
         check.register(self.advance())
 
         return check.success(ArrayNode(left.value, elements))
+
+    def arrayIndexExpression(self, array):
+        print("rach")
+        check = ParseChecker()
+        check.register(self.advance())
+
+        index = check.register(self.expression())
+
+        if self.curToken.type != lx.typeRSQ:
+            return check.failure(err.InvalidSyntaxError("Invalid array indexing, expected ]", self.curToken.line))
+
+        check.register(self.advance())
+
+        print(IndexNode(array, index))
+
+        return check.success(IndexNode(array, index))
 
     #TODO && and || parsing
     def logicExpression(self, left):
@@ -456,6 +482,10 @@ class Parser:
         check = ParseChecker()
         left = check.register(self.variable())
         check.register(self.advance())
+
+        print(self.curToken)
+        if self.curToken.type == lx.typeLSQ:
+            return check.register(self.arrayIndexExpression())
 
         if check.error:
             return check

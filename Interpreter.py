@@ -7,38 +7,8 @@ import Error as err
 import SymbolTable as smb
 
 #Visiting pattern
-#this is awful - do some string concetenation for functions
-class Visitor(object):
-    # def visit(self, node):
-    #     if isinstance(node, prs.FactorNode):
-    #         return self.visitNumNode(node)
-    #     elif isinstance(node, prs.OperatorNode):
-    #         return self.visitOpNode(node)
-    #     elif isinstance(node, prs.CompoundStmtNode):
-    #         return self.visitCompNode(node)
-    #     elif isinstance(node, prs.AssignmentNode):
-    #         return self.visitAssgnNode(node)
-    #     elif isinstance(node, prs.VariableNode):
-    #         return self.visitVarNode(node)
-    #     elif isinstance(node, prs.IfNode):
-    #         return self.visitIfNode(node)
-    #     elif isinstance(node, prs.LogicNode):
-    #         return self.visitLogicNode(node)
-    #     elif isinstance(node, prs.ForNode):
-    #         return self.visitForNode(node)
-    #     elif isinstance(node, prs.WhileNode):
-    #         return self.visitWhileNode(node)
-    #     elif isinstance(node, prs.DoubleOpNode):
-    #         return self.visitDoubleOpNode(node)
-    #     elif isinstance(node, prs.FuncNode):
-    #         return self.visitFuncNode(node)
-    #     elif isinstance(node, prs.FuncCallNode):
-    #         return self.visitFuncCallNode(node)
-    #     elif isinstance(node, prs.ReturnNode):
-    #         return self.visitReturnNode(node)
-    #     elif isinstance(node, prs.ArrayNode):
-    #         return self.visitArrayNode(node)
 
+class Visitor(object):
     def visit(self, node):
         method_name = 'visit' + type(node).__name__
         visitor = getattr(self, method_name, self.generic_visit)
@@ -48,6 +18,7 @@ class Visitor(object):
         raise Exception('No visit{} method'.format(type(node).__name__))
 
 #Run Time Result
+
 class RunChecker:
     def __init__(self) -> None:
         self.reset()
@@ -159,8 +130,14 @@ class Interpreter(Visitor):
             return check.register(self.visit(node.elseCase))
 
     def visitArrayNode(self, node):
-        print(self.table.variables)
         self.table.addArr(node.name, node.elements)
+
+    def visitIndexNode(self, node):
+        check = RunChecker()
+        print(node.array)
+        array = self.table.getVar(node.array.value)
+        print("ff", self.visit(node.index))
+        return check.register(self.visit(array.elements[check.register(self.visit(node.index))]))
 
     def visitForNode(self, node):
         check = RunChecker()

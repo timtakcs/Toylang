@@ -60,6 +60,7 @@ while True:
     text = """
         num = 34;
         array = [2, 4, 5, 8, 9, 0];
+        nn = array[1];
     """
    
     result, error = lang.run(text)
