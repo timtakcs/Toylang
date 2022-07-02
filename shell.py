@@ -51,17 +51,33 @@ while True:
     #                 num = num * i;
     #             };
 
-    #             RETURN num
+    #             RETURN num;
     #         };
 
     #         result = fact(5);
     # """
 
     text = """
-        num = 34;
-        array = [2, 4, 5, 8, 9, 0];
-        nn = array[1];
+        array = [1, 2, 3, 5, 0];
+        num = array[3];
     """
+
+    #Bubblesort
+    # text = """
+    #     FUNC bubblesort(array, length) {
+    #         FOR (i = 0; i < length; i++) {
+    #             FOR (j = 0; j < length - i; j++) { 
+    #                 IF array[j] > array[j + 1] {
+    #                     temp = array[j];
+    #                     array[j] = array[j + 1];
+    #                     array[j + 1] = temp;
+    #                 };
+    #             };
+    #         };
+
+    #         RETURN array;
+    #     };
+    # """
    
     result, error = lang.run(text)
 

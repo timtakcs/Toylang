@@ -78,11 +78,14 @@ class Interpreter(Visitor):
         return check.success(node.value.value)
 
     def visitVariableNode(self, node):
-        check = RunChecker()
-        return check.success(self.table.getVar(node.value))
-        
+        for i in range(len(node.indices)):
+            node.indices[i] = self.visit(node.indices[i])
+
+        return self.table.getVar(node.value, node.indices)
+
     def visitAssignmentNode(self, node):
         check = RunChecker()
+        print("fff", node.rightChild)
         self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)))
 
     def visitDoubleOpNode(self, node):
@@ -130,13 +133,17 @@ class Interpreter(Visitor):
             return check.register(self.visit(node.elseCase))
 
     def visitArrayNode(self, node):
+        check = RunChecker()
+        for i in range(len(node.elements)):
+            node.elements[i] = check.register(self.visit(node.elements[i]))
+
         self.table.addArr(node.name, node.elements)
 
     def visitIndexNode(self, node):
         check = RunChecker()
         print(node.array)
         array = self.table.getVar(node.array.value)
-        print("ff", self.visit(node.index))
+        print("ff", node.index)
         return check.register(self.visit(array.elements[check.register(self.visit(node.index))]))
 
     def visitForNode(self, node):
@@ -202,4 +209,3 @@ class Interpreter(Visitor):
         self.tree = self.parser.parse()
         self.visit(self.tree.node)
         return self.table
-

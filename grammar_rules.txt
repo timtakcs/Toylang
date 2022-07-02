@@ -12,6 +12,8 @@ logic-expression: expression LOGIC expression
 
 arr-expression: [expression (, expression)*?]
 
+arr-index: arr[expression]
+
 var: ID
 
 assignment: var ASSGN expression
@@ -41,13 +43,15 @@ compound_statement: statement_list
 
 program: compound_statement
 
-FOR (i = 0; i < N; i++) {
+FOR (factor = 0; factor < N; factor++) {
       loop body
 }
 
 while condition {
       loop body
 }
+
+
 
 
 

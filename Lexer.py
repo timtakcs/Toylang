@@ -136,7 +136,7 @@ class Lexer:
     def makeVar(self, line):
         varID = ''
 
-        while self.currentChar != None and self.currentChar.isalnum() == True:
+        while self.currentChar != None and self.currentChar.isalnum() == True or self.currentChar == "_":
             varID += self.currentChar
             self.advance()
             

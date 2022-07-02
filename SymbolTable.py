@@ -12,13 +12,15 @@ class Function:
 class Array:
     def __init__(self, elements):
         self.elements = elements
+        self.length = len(elements)
 
+    #rewrite this so that it works for a dictionary
     def append(self, element):
         newList = self.copy()
         newList.append(element)
         return newList
 
-    def getElement(self, index):
+    def get_element(self, index):
         if isinstance(index, int):
             try:
                 return self.elements[index]
@@ -40,8 +42,15 @@ class SymbolTable:
     def addVar(self, name, value):
         self.variables[name] = value
 
-    def getVar(self, name):
-        return self.variables[name]
+    def getVar(self, name, indices):
+        var = self.variables[name]
+
+        #the if statement is used for future implementation of a dictionary
+        if isinstance(var, Array):
+            for i in range(len(indices)):
+                var = var[indices[i]]
+
+        return var
 
     def incVar(self, name, op):
         if op.type == lx.typeInc:
@@ -53,7 +62,11 @@ class SymbolTable:
         self.variables[name] = Function(function)
 
     def addArr(self, name, array):
-        self.variables[name] = Array(array)
+        dict_array = {}
+        for i in range(len(array)):
+            dict_array[i] = array[i]
+
+        self.variables[name] = Array(dict_array)
 
     def getFunc(self, name):
         if self.parent:
