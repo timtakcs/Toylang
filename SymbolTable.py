@@ -45,10 +45,12 @@ class SymbolTable:
     def getVar(self, name, indices):
         var = self.variables[name]
 
+        print("smb ind", indices)
+
         #the if statement is used for future implementation of a dictionary
         if isinstance(var, Array):
             for i in range(len(indices)):
-                var = var[indices[i]]
+                var = var.elements[indices[i]]
 
         return var
 

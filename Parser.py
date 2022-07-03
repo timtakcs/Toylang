@@ -175,6 +175,10 @@ class Parser:
             self.curToken = self.tokenArray[self.pos]
         return self.curToken
 
+    def peek(self):
+        tok = self.tokenArray[self.pos + 1]
+        return tok.type
+
     def factor(self):
         check = ParseChecker()
         token = self.curToken
@@ -241,7 +245,6 @@ class Parser:
 
     def array_expression(self, left):
         check = ParseChecker()
-        print(self.curToken)
         check.register(self.advance())
         elements = []
 
@@ -478,17 +481,20 @@ class Parser:
         check = ParseChecker()
         indices = []
         var = VariableNode(self.curToken)
-        check.register(self.advance())
 
-        while self.curToken.type == lx.typeLSQ:
-            check.register(self.advance())
-            indices.append(check.register(self.expression))
-
-            if self.curToken.type != lx.typeRSQ:
-                return check.error(err.InvalidSyntaxError("Expected ]", self.curToken.line))
-
+        if self.peek() == lx.typeLSQ:
             check.register(self.advance())
 
+            while self.curToken.type == lx.typeLSQ:
+                check.register(self.advance())
+                indices.append(check.register(self.expression()))
+
+                if self.curToken.type != lx.typeRSQ:
+                    return check.failure(err.InvalidSyntaxError("Expected ]", self.curToken.line))
+
+                check.register(self.advance())
+
+        var.indices = indices
         return check.success(var)
 
     def assignment(self):
@@ -691,5 +697,6 @@ class Parser:
     def parse(self):
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
+            print("d", self.curToken)
             return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
         return result
