@@ -41,7 +41,6 @@ class SymbolTable:
 
     def addVar(self, name, value, indices):
         if len(indices) > 0:
-            print(indices)
             self.descend_to_index(self.variables[name], indices, value, 0)
         else:
             self.variables[name] = value

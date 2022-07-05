@@ -272,22 +272,6 @@ class Parser:
 
         return check.success(ArrayNode(left.value, elements))
 
-    # def arrayIndexExpression(self, array):
-    #     print("rach")
-    #     check = ParseChecker()
-    #     check.register(self.advance())
-
-    #     index = check.register(self.expression())
-
-    #     if self.curToken.type != lx.typeRSQ:
-    #         return check.failure(err.InvalidSyntaxError("Invalid array indexing, expected ]", self.curToken.line))
-
-    #     check.register(self.advance())
-
-    #     print(IndexNode(array, index))
-
-    #     return check.success(IndexNode(array, index))
-
     #TODO && and || parsing
     def logic_expression(self, left):
         check = ParseChecker()
@@ -697,6 +681,5 @@ class Parser:
     def parse(self):
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
-            print("d", self.curToken)
             return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
         return result
