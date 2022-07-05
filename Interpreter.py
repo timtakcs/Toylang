@@ -81,13 +81,17 @@ class Interpreter(Visitor):
         check = RunChecker()
 
         for i in range(len(node.indices)):
+            print(node.indices[i])
             node.indices[i] = check.register(self.visit(node.indices[i]))
 
         return self.table.getVar(node.value, node.indices)
 
     def visitAssignmentNode(self, node):
         check = RunChecker()
-        self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)))
+        for i in range(len(node.leftChild.indices)):
+            node.leftChild.indices[i] = check.register(self.visit(node.leftChild.indices[i]))
+
+        self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)), node.leftChild.indices)
 
     def visitDoubleOpNode(self, node):
         check = RunChecker()
@@ -183,7 +187,11 @@ class Interpreter(Visitor):
             return f'(Function expected {len(argNames)} arguments, recieved {len(args)})'
 
         for i in range(len(args)):
-            newTable.addVar(argNames[i].value, args[i].value.value)
+            print(argNames[i].value)
+            print(check.register(self.visit(args[i])))
+            newTable.addVar(argNames[i].value, check.register(self.visit(args[i])), [])
+
+        print(newTable)
 
         check.register(interpreter.visit(func.body))
 

@@ -4,11 +4,16 @@ indices = [2]
 
 value = 90
 
-indices = [1, 1]
+indices = [1]
 
-new_dict['array'][indices[0]][indices[1]] = value
+def f(array, indices, value, level):
+    if level == len(indices) - 1:
+        array[indices[level]] = value
+    else:
+        f(array[indices[level]], indices, value, level + 1)
+
+f(new_dict['array'], indices, value, 0)
 
 print(new_dict)
-
 
 

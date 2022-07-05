@@ -39,13 +39,21 @@ class SymbolTable:
         self.parent = parent
         self.variables = {}
 
-    def addVar(self, name, value):
-        self.variables[name] = value
+    def addVar(self, name, value, indices):
+        if len(indices) > 0:
+            print(indices)
+            self.descend_to_index(self.variables[name], indices, value, 0)
+        else:
+            self.variables[name] = value
+
+    def descend_to_index(self, var, indices, value, level):
+        if level == len(indices) - 1:
+            var.elements[indices[level]] = value
+        else:
+            self.descend_to_index(var.elements[indices[level]], indices, value, level + 1)
 
     def getVar(self, name, indices):
         var = self.variables[name]
-
-        print("smb ind", indices)
 
         #the if statement is used for future implementation of a dictionary
         if isinstance(var, Array):

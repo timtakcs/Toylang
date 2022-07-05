@@ -482,17 +482,16 @@ class Parser:
         indices = []
         var = VariableNode(self.curToken)
 
-        if self.peek() == lx.typeLSQ:
+        while self.peek() == lx.typeLSQ:
+            #advance to get to the bracket
             check.register(self.advance())
+            #advance to get to the expression token
+            check.register(self.advance())
+            #maybe not the most elegant but it works
+            indices.append(check.register(self.expression()))
 
-            while self.curToken.type == lx.typeLSQ:
-                check.register(self.advance())
-                indices.append(check.register(self.expression()))
-
-                if self.curToken.type != lx.typeRSQ:
-                    return check.failure(err.InvalidSyntaxError("Expected ]", self.curToken.line))
-
-                check.register(self.advance())
+            if self.curToken.type != lx.typeRSQ:
+                return check.failure(err.InvalidSyntaxError("Expected ]", self.curToken.line))
 
         var.indices = indices
         return check.success(var)
@@ -518,6 +517,7 @@ class Parser:
             return check.register(self.array_expression(left))
         
         right = check.register(self.expression())
+
         if check.error:
             return check
 
