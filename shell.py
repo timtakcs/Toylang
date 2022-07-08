@@ -1,7 +1,5 @@
 import language as lang
 
-while True:
-    text = input(">>> ")
 
     # text = """
     #         var1 = 5 * (3 - 1);
@@ -83,12 +81,12 @@ while True:
     #     testarr = bubblesort(testarr, 6);
     # """
 
-    with open('main.gs', 'r') as f:
-        text = f.read()
-   
-    result, error = lang.run(text)
+with open('new.gs', 'r') as f:
+    text = f.read()
 
-    if error:
-        print(error.asString())
-    else:
-        print(result)
+result, error = lang.run(text)
+
+if error:
+    print(error.asString())
+else:
+    print(result)

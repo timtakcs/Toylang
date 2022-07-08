@@ -93,6 +93,8 @@ class Interpreter(Visitor):
         for i in range(len(node.leftChild.indices)):
             temp_indices.append(check.register(self.visit(node.leftChild.indices[i])))
 
+        print(node)
+
         self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)), temp_indices)
 
     def visitDoubleOpNode(self, node):
@@ -190,7 +192,7 @@ class Interpreter(Visitor):
 
         for i in range(len(args)):
             newTable.addVar(argNames[i].value, check.register(self.visit(args[i])), [])
-            
+
         check.register(interpreter.visit(func.body))
 
         if check.shouldReturn():
