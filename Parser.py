@@ -201,6 +201,8 @@ class Parser:
         else:
             node = check.register(self.variable())
             check.register(self.advance())
+            if self.curToken.type == lx.typeLPAR:
+                return check.register(self.funcCall(node))
 
             if check.error:
                 return check
@@ -466,9 +468,8 @@ class Parser:
         indices = []
         var = VariableNode(self.curToken)
 
-        if self.peek() == lx.typeLPAR:
-            print("funccall register")
-            return check.register(self.funcCall(var))
+        if check.error:
+            return check
 
         while self.peek() == lx.typeLSQ:
             #advance to get to the bracket
@@ -573,8 +574,6 @@ class Parser:
         check = ParseChecker()
         args = []
 
-        print("fff")
-
         check.register(self.advance())
 
         if self.curToken.type != lx.typeRPAR:
@@ -582,8 +581,6 @@ class Parser:
             args.append(arg)
             if check.error:
                 return check
-        
-        print("nnn")
 
         while self.curToken.type == lx.typeComma:
             check.register(self.advance())
@@ -592,20 +589,11 @@ class Parser:
             if check.error:
                 return check
 
-        print("nn")
-
-        print(self.curToken.type)
         if self.curToken.type != lx.typeRPAR:
             return check.failure(err.InvalidSyntaxError("Invalid function call, expected )"
             , self.curToken.line))
-
-        print("n")
         
         check.register(self.advance())
-
-        print("ff")
-
-        print(FuncCallNode(var, args))
        
         return check.success(FuncCallNode(var, args))
 

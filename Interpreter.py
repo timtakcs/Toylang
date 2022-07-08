@@ -93,8 +93,6 @@ class Interpreter(Visitor):
         for i in range(len(node.leftChild.indices)):
             temp_indices.append(check.register(self.visit(node.leftChild.indices[i])))
 
-        print(node)
-
         self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)), temp_indices)
 
     def visitDoubleOpNode(self, node):
@@ -139,7 +137,11 @@ class Interpreter(Visitor):
                 else:
                     return check.success(expr)
         if node.elseCase != None:
-            return check.register(self.visit(node.elseCase))
+            else_expr = check.register(self.visit(node.elseCase))
+            if check.shouldReturn():
+                return check
+            else:
+                return check.success(else_expr)
 
     def visitArrayNode(self, node):
         check = RunChecker()
@@ -181,7 +183,7 @@ class Interpreter(Visitor):
     def visitFuncNode(self, node):
         self.table.addFunc(node.name, node)
 
-    def execute(self, func, args, table):
+    def execute(self, name, func, args, table):
         check = RunChecker()
         newTable = table
         interpreter = Interpreter(self.parser, newTable)
@@ -192,6 +194,8 @@ class Interpreter(Visitor):
 
         for i in range(len(args)):
             newTable.addVar(argNames[i].value, check.register(self.visit(args[i])), [])
+
+        newTable.addFunc(name, func)
 
         check.register(interpreter.visit(func.body))
 
@@ -206,7 +210,7 @@ class Interpreter(Visitor):
         func = self.table.getFunc(varName)
         args = node.args
         newTable = smb.SymbolTable(self.table)
-        result = check.register(self.execute(func, args, newTable))
+        result = check.register(self.execute(varName, func, args, newTable))
         return result
 
     def visitEmptyOpNode(self, node):
