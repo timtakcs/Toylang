@@ -1,5 +1,6 @@
 import Lexer as lx
 import Error as err
+import Interpreter as inp
 
 class Function:
     def __init__(self, node) -> None:
@@ -62,10 +63,14 @@ class SymbolTable:
         return var
 
     def incVar(self, name, op):
-        if op.type == lx.typeInc:
-            self.variables[name] += 1
-        else:
-            self.variables[name] -= 1
+        check = inp.RunChecker()
+        try:
+            if op.type == lx.typeInc:
+                self.variables[name] += 1
+            else:
+                self.variables[name] -= 1
+        except:
+            return check.failure(err.MissingVariableError(f'variable: {name}'))
 
     def addFunc(self, name, function):
         self.variables[name] = Function(function)

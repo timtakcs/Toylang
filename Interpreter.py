@@ -98,7 +98,8 @@ class Interpreter(Visitor):
     def visitDoubleOpNode(self, node):
         check = RunChecker()
         #change the arguments to be visit functions
-        self.table.incVar(node.var.value, node.operator)
+        check.register(self.table.incVar(node.var.value, node.operator))
+        if check.shouldReturn(): return check
 
     #TODO write the processing for non singular or factor increments
 
@@ -217,6 +218,11 @@ class Interpreter(Visitor):
         pass
 
     def interpret(self):
+        check = RunChecker()
         self.tree = self.parser.parse()
-        self.visit(self.tree.node)
+        check.register(self.visit(self.tree.node))
+
+        if check.error:
+            return check
+
         return self.table

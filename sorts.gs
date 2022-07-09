@@ -17,7 +17,7 @@ FUNC part(array, low, high) {
     pivot = array[high];
     i = low - 1;
 
-    FOR (j = low; j <= high; j++) {
+    FOR (j = low; j < high; j++) {
         IF array[j] < pivot {
             i++;
             temp = array[i];
@@ -25,20 +25,24 @@ FUNC part(array, low, high) {
             array[j] = temp;
         };
     };
+
     temp = array[i + 1];
     array[i + 1] = array[high];
     array[high] = temp;
+
     RETURN i + 1;
 };
 
-FUNC quicksort(array, low, high) {
-    IF low > high {
+FUNC quicksort(array, low, high, part) {
+    IF low < high {
         index = part(array, low, high);
         quicksort(array, low, index - 1);
         quicksort(array, index + 1, high);
     };
 };
 
-newtestarr = [6, 71, 8, 9, 1, 13];
-quicksort(newtestarr, 0, 6);
+newtestarr = [6, 71, 8, 61, 3, 9, 13];
+quicksort(newtestarr, 0, 6, part);
+
+
 
