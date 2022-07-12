@@ -136,7 +136,7 @@ class Lexer:
     def makeVar(self, line):
         varID = ''
 
-        while self.currentChar != None and self.currentChar.isalnum() == True:
+        while self.currentChar != None and self.currentChar.isalnum() == True or self.currentChar == "_":
             varID += self.currentChar
             self.advance()
             
@@ -306,6 +306,5 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
-        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

@@ -23,6 +23,7 @@ class VariableNode:
     def __init__(self, token):
         self.token = token
         self.value = token.value
+        self.indices = []
     
     def __repr__(self):
         return f'({self.token}, {self.value})'
@@ -174,6 +175,10 @@ class Parser:
             self.curToken = self.tokenArray[self.pos]
         return self.curToken
 
+    def peek(self):
+        tok = self.tokenArray[self.pos + 1]
+        return tok.type
+
     def factor(self):
         check = ParseChecker()
         token = self.curToken
@@ -196,6 +201,8 @@ class Parser:
         else:
             node = check.register(self.variable())
             check.register(self.advance())
+            if self.curToken.type == lx.typeLPAR:
+                return check.register(self.funcCall(node))
 
             if check.error:
                 return check
@@ -230,17 +237,16 @@ class Parser:
             left = OperatorNode(left, operator, right)
 
         if self.curToken.type in lx.logicOps:
-            left = check.register(self.logicExpression(left))
+            left = check.register(self.logic_expression(left))
         elif self.curToken.type == lx.typeLPAR:
             left = check.register(self.funcCall(left))
         elif self.curToken.type == lx.typeLSQ:
-            left = check.register(self.arrayIndexExpression(left))
+            left = check.register(self.array_expression(left))
 
         return check.success(left)
 
-    def arrayExpression(self, left):
+    def array_expression(self, left):
         check = ParseChecker()
-        print(self.curToken)
         check.register(self.advance())
         elements = []
 
@@ -268,24 +274,8 @@ class Parser:
 
         return check.success(ArrayNode(left.value, elements))
 
-    def arrayIndexExpression(self, array):
-        print("rach")
-        check = ParseChecker()
-        check.register(self.advance())
-
-        index = check.register(self.expression())
-
-        if self.curToken.type != lx.typeRSQ:
-            return check.failure(err.InvalidSyntaxError("Invalid array indexing, expected ]", self.curToken.line))
-
-        check.register(self.advance())
-
-        print(IndexNode(array, index))
-
-        return check.success(IndexNode(array, index))
-
     #TODO && and || parsing
-    def logicExpression(self, left):
+    def logic_expression(self, left):
         check = ParseChecker()
 
         operator = self.curToken
@@ -294,7 +284,7 @@ class Parser:
         right = check.register(self.expression())
         return check.success(LogicNode(left, operator, right))
 
-    def incExpression(self, var):
+    def inc_expression(self, var):
         check = ParseChecker()
 
         operator = self.curToken
@@ -309,7 +299,7 @@ class Parser:
 
         return check.success(DoubleOpByNode(var, operator, increment))
 
-    def returnExpression(self):
+    def return_expression(self):
         check = ParseChecker()
 
         check.register(self.advance())
@@ -326,8 +316,8 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})') 
-            , self.curToken.line)
+            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})' 
+            , self.curToken.line))
 
         check.register(self.advance())
         
@@ -475,7 +465,24 @@ class Parser:
 
     def variable(self):
         check = ParseChecker()
-        var = check.register(VariableNode(self.curToken))
+        indices = []
+        var = VariableNode(self.curToken)
+
+        if check.error:
+            return check
+
+        while self.peek() == lx.typeLSQ:
+            #advance to get to the bracket
+            check.register(self.advance())
+            #advance to get to the expression token
+            check.register(self.advance())
+            #maybe not the most elegant but it works
+            indices.append(check.register(self.expression()))
+
+            if self.curToken.type != lx.typeRSQ:
+                return check.failure(err.InvalidSyntaxError("Expected ]", self.curToken.line))
+
+        var.indices = indices
         return check.success(var)
 
     def assignment(self):
@@ -483,26 +490,23 @@ class Parser:
         left = check.register(self.variable())
         check.register(self.advance())
 
-        print(self.curToken)
-        if self.curToken.type == lx.typeLSQ:
-            return check.register(self.arrayIndexExpression())
-
         if check.error:
             return check
 
         operator = self.curToken
 
         if operator.type in lx.incOps:
-            return check.register(self.incExpression(left))
+            return check.register(self.inc_expression(left))
         elif operator.type == lx.typeLPAR:
             return check.register(self.funcCall(left))
 
         check.register(self.advance())
 
         if self.curToken.type == lx.typeLSQ:
-            return check.register(self.arrayExpression(left))
+            return check.register(self.array_expression(left))
         
         right = check.register(self.expression())
+
         if check.error:
             return check
 
@@ -577,7 +581,7 @@ class Parser:
             args.append(arg)
             if check.error:
                 return check
-        
+
         while self.curToken.type == lx.typeComma:
             check.register(self.advance())
             arg = check.register(self.expression())
@@ -621,7 +625,7 @@ class Parser:
             if check.error:
                 return check
         elif self.curToken.type == lx.typeReturn:
-            node = check.register(self.returnExpression())
+            node = check.register(self.return_expression())
             if check.error:
                 return check
         else:

@@ -79,16 +79,27 @@ class Interpreter(Visitor):
 
     def visitVariableNode(self, node):
         check = RunChecker()
-        return check.success(self.table.getVar(node.value))
-        
+        temp_indices = []
+
+        for i in range(len(node.indices)):
+            temp_indices.append(check.register(self.visit(node.indices[i])))
+
+        return self.table.getVar(node.value, temp_indices)
+
     def visitAssignmentNode(self, node):
         check = RunChecker()
-        self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)))
+        temp_indices = []
+
+        for i in range(len(node.leftChild.indices)):
+            temp_indices.append(check.register(self.visit(node.leftChild.indices[i])))
+
+        self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)), temp_indices)
 
     def visitDoubleOpNode(self, node):
         check = RunChecker()
         #change the arguments to be visit functions
-        self.table.incVar(node.var.value, node.operator)
+        check.register(self.table.incVar(node.var.value, node.operator))
+        if check.shouldReturn(): return check
 
     #TODO write the processing for non singular or factor increments
 
@@ -127,16 +138,22 @@ class Interpreter(Visitor):
                 else:
                     return check.success(expr)
         if node.elseCase != None:
-            return check.register(self.visit(node.elseCase))
+            else_expr = check.register(self.visit(node.elseCase))
+            if check.shouldReturn():
+                return check
+            else:
+                return check.success(else_expr)
 
     def visitArrayNode(self, node):
+        check = RunChecker()
+        for i in range(len(node.elements)):
+            node.elements[i] = check.register(self.visit(node.elements[i]))
+
         self.table.addArr(node.name, node.elements)
 
     def visitIndexNode(self, node):
         check = RunChecker()
-        print(node.array)
         array = self.table.getVar(node.array.value)
-        print("ff", self.visit(node.index))
         return check.register(self.visit(array.elements[check.register(self.visit(node.index))]))
 
     def visitForNode(self, node):
@@ -167,7 +184,7 @@ class Interpreter(Visitor):
     def visitFuncNode(self, node):
         self.table.addFunc(node.name, node)
 
-    def execute(self, func, args, table):
+    def execute(self, name, func, args, table):
         check = RunChecker()
         newTable = table
         interpreter = Interpreter(self.parser, newTable)
@@ -177,7 +194,9 @@ class Interpreter(Visitor):
             return f'(Function expected {len(argNames)} arguments, recieved {len(args)})'
 
         for i in range(len(args)):
-            newTable.addVar(argNames[i].value, args[i].value.value)
+            newTable.addVar(argNames[i].value, check.register(self.visit(args[i])), [])
+
+        newTable.addFunc(name, func)
 
         check.register(interpreter.visit(func.body))
 
@@ -192,14 +211,18 @@ class Interpreter(Visitor):
         func = self.table.getFunc(varName)
         args = node.args
         newTable = smb.SymbolTable(self.table)
-        result = check.register(self.execute(func, args, newTable))
+        result = check.register(self.execute(varName, func, args, newTable))
         return result
 
     def visitEmptyOpNode(self, node):
         pass
 
     def interpret(self):
+        check = RunChecker()
         self.tree = self.parser.parse()
-        self.visit(self.tree.node)
-        return self.table
+        check.register(self.visit(self.tree.node))
 
+        if check.error:
+            return check
+
+        return self.table
