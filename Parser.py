@@ -204,13 +204,13 @@ class Parser:
                 check.register(self.advance())
                 return check.success(newExpression)
             else:
-                return check.failure(err.InvalidSyntaxError("Syntax Error: Expected )", token.line))
+                return check.failure(err.InvalidSyntaxError("Syntax Error: Expected ), line: ", token.line))
 
         else:
             node = check.register(self.variable())
             check.register(self.advance())
             if self.curToken.type == lx.typeLPAR:
-                return check.register(self.funcCall(node))
+                return check.register(self.func_call(node))
 
             if check.error:
                 return check
@@ -247,7 +247,7 @@ class Parser:
         if self.curToken.type in lx.logicOps:
             left = check.register(self.logic_expression(left))
         elif self.curToken.type == lx.typeLPAR:
-            left = check.register(self.funcCall(left))
+            left = check.register(self.func_call(left))
         elif self.curToken.type == lx.typeLSQ:
             left = check.register(self.array_expression(left))
 
@@ -277,7 +277,7 @@ class Parser:
             elements.append(expr)
             
         if self.curToken.type != lx.typeRSQ:
-            return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ]", self.curToken.line))
+            return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ], line: ", self.curToken.line))
 
         check.register(self.advance())
 
@@ -325,12 +325,12 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})' 
+            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"}), line: ' 
             , self.curToken.line))
 
         check.register(self.advance())
 
-        expression = check.register(self.compStatement())
+        expression = check.register(self.comp_statement())
         if check.error: 
             return check
 
@@ -338,14 +338,14 @@ class Parser:
             check.register(self.advance())
 
         if self.curToken.type != lx.typeRBRACE:
-            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"})'
+            return check.failure(err.InvalidSyntaxError(f'(Invalid {context} statement declaration, expected {"{"}), line: '
             , self.curToken.line))
 
         check.register(self.advance())
 
         return (condition, expression)
 
-    def ifExpression(self):
+    def if_expression(self):
         check = ParseChecker()
         cases = []
         elseCase = None
@@ -367,17 +367,17 @@ class Parser:
             check.register(self.advance())
             
             if self.curToken.type != lx.typeLBRACE:
-                return check.failure(err.InvalidSyntaxError("Invalid else statement declaration, expected {"
+                return check.failure(err.InvalidSyntaxError("Invalid else statement declaration, expected {, line: "
                 , self.curToken.line))
 
             check.register(self.advance())
 
-            expression = check.register(self.compStatement())
+            expression = check.register(self.comp_statement())
             if check.error: 
                 return check
 
             if self.curToken.type != lx.typeRBRACE:
-                return check.failure(err.InvalidSyntaxError("Invalid else expression declaration, expected }"
+                return check.failure(err.InvalidSyntaxError("Invalid else expression declaration, expected }, line: "
                 , self.curToken.line))
 
             check.register(self.advance())
@@ -386,12 +386,12 @@ class Parser:
 
         return check.success(IfNode(cases, elseCase))
 
-    def forExpression(self):
+    def for_expression(self):
         check = ParseChecker()
         check.register(self.advance())
 
         if self.curToken.type != lx.typeLPAR:
-            return check.failure(err.InvalidSyntaxError("Invalid for expression declaration, expected ("
+            return check.failure(err.InvalidSyntaxError("Invalid for expression declaration, expected (, line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -401,7 +401,7 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeSemi:
-            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step)"
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step), line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -411,7 +411,7 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeSemi:
-            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step)"
+            return check.failure(err.InvalidSyntaxError("Invalid for declaration, expected (counter, limit, step), line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -421,30 +421,30 @@ class Parser:
             return check
 
         if self.curToken.type != lx.typeRPAR:
-            return check.failure(err.InvalidSyntaxError("Expected )"
+            return check.failure(err.InvalidSyntaxError("Expected ), line: "
             , self.curToken.line))
 
         check.register(self.advance())
 
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected {"
+            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected {, line: "
             , self.curToken.line))
 
         check.register(self.advance())
 
-        body = check.register(self.compStatement())
+        body = check.register(self.comp_statement())
         if check.error:
             return check
 
         if self.curToken.type != lx.typeRBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected }"
+            return check.failure(err.InvalidSyntaxError("Invalid for body declaration, expected }, line: "
             , self.curToken.line))
 
         check.register(self.advance())
         
         return check.success(ForNode(counter, limit, step, body))
 
-    def whileExpression(self):
+    def while_expression(self):
         check = ParseChecker()
         check.register(self.advance())
 
@@ -453,16 +453,16 @@ class Parser:
             return check
         
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected {"
+            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected {, line: "
             , self.curToken.line))
 
         check.register(self.advance())
-        body = check.register(self.compStatement())
+        body = check.register(self.comp_statement())
         if check.error:
             return check
 
         if self.curToken.type != lx.typeRBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected }"
+            return check.failure(err.InvalidSyntaxError("Invalid while body declaration, expected }, line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -486,7 +486,7 @@ class Parser:
             indices.append(check.register(self.expression()))
 
             if self.curToken.type != lx.typeRSQ:
-                return check.failure(err.InvalidSyntaxError("Expected ]", self.curToken.line))
+                return check.failure(err.InvalidSyntaxError("Expected ], line: ", self.curToken.line))
 
         var.indices = indices
         return check.success(var)
@@ -504,7 +504,7 @@ class Parser:
         if operator.type in lx.incOps:
             return check.register(self.inc_expression(left))
         elif operator.type == lx.typeLPAR:
-            return check.register(self.funcCall(left))
+            return check.register(self.func_call(left))
 
         check.register(self.advance())
 
@@ -520,19 +520,19 @@ class Parser:
 
         return check.success(left)
 
-    def funcExpression(self):
+    def func_expression(self):
         check = ParseChecker()
         check.register(self.advance())
 
         if self.curToken.type != lx.typeVar:
-            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected an identifier"
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected an identifier, line: "
             , self.curToken.line))
 
         var = self.curToken.value
         check.register(self.advance())
 
         if self.curToken.type != lx.typeLPAR:
-            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected ("
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected (, line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -545,36 +545,31 @@ class Parser:
         while self.curToken.type == lx.typeComma:
             check.register(self.advance())
             if self.curToken.type != lx.typeVar:
-                return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected ,"
+                return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected , line: "
                 , self.curToken.line))
 
             args.append(self.curToken)
             check.register(self.advance())
 
         if self.curToken.type != lx.typeRPAR:
-            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected )"
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected ), line: "
             , self.curToken.line))
 
         check.register(self.advance())
 
         if self.curToken.type != lx.typeLBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected {"
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected {, line: "
             , self.curToken.line))
-
-        print("fffvvv", self.curToken)
 
         check.register(self.advance())
 
-        print("nnn", self.curToken)
-        body = check.register(self.compStatement())
+        body = check.register(self.comp_statement())
 
         if check.error:
             return check
 
-        print(":", self.curToken)
-
         if self.curToken.type != lx.typeRBRACE:
-            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected }"
+            return check.failure(err.InvalidSyntaxError("Invalid function declaration, expected }, line: "
             , self.curToken.line))
 
         check.register(self.advance())
@@ -582,7 +577,6 @@ class Parser:
         return check.success(FuncNode(var, args, body))
 
     def func_call_processing(self):
-        print("even reach")
         check = ParseChecker()
         args = []
         
@@ -602,32 +596,32 @@ class Parser:
                 return check
 
         if self.curToken.type != lx.typeRPAR:
-            return check.failure(err.InvalidSyntaxError("Invalid function call, expected )"
+            return check.failure(err.InvalidSyntaxError("Invalid function call, expected ), line: "
             , self.curToken.line))
 
         check.register(self.advance())
 
         return args
 
-    def funcCall(self, var):
+    def func_call(self, var):
         check = ParseChecker()
 
         if var.token.type in lx.builtInFuncs:
-            return check.register(self.builtInCall(var))
+            return check.register(self.built_in_call(var))
 
         args = check.register(self.func_call_processing())
         if check.error: return check
        
         return check.success(FuncCallNode(var, args))
 
-    def builtInCall(self, var):
+    def built_in_call(self, var):
         check = ParseChecker()
 
         args = check.register(self.func_call_processing())
         if check.error: return check
 
         if len(args) != 1 and var.value != "append":
-            return check.failure(err.InvalidNumOfArgumentsError(f'{var.value} takes 1 argument, {len(args)} was provided instead. Line {self.curToken.line}'))
+            return check.failure(err.InvalidNumOfArgumentsError(f'{var.value} takes 1 argument, {len(args)} was provided instead. Line: {self.curToken.line}'))
 
         return check.success(BuiltInFuncNode(var, args))
 
@@ -643,26 +637,21 @@ class Parser:
             if check.error:
                 return check
         elif self.curToken.type == lx.typeIf:
-            print("if registers", self.curToken)
-            node = check.register(self.ifExpression())
+            node = check.register(self.if_expression())
             if check.error:
                 return check
-
-            print("if completes")
         elif self.curToken.type == lx.typeFor:
-            print("for registers")
-            node = check.register(self.forExpression())
+            node = check.register(self.for_expression())
             if check.error:
                 return check
         elif self.curToken.type == lx.typeWhile:
-            node = check.register(self.whileExpression())
+            node = check.register(self.while_expression())
             if check.error:
                 return check
         elif self.curToken.type == lx.typeFunc:
-            node = check.register(self.funcExpression())
+            node = check.register(self.func_expression())
             if check.error:
                 return check
-            print("ff", self.curToken)
         elif self.curToken.type == lx.typeReturn:
             node = check.register(self.return_expression())
             if check.error:
@@ -670,7 +659,7 @@ class Parser:
         elif self.curToken.type == lx.typePrint or self.curToken == lx.typeAppend:
             func = self.curToken
             check.register(self.advance())
-            node = check.register(self.builtInCall(func))
+            node = check.register(self.built_in_call(func))
             if check.error:
                 return check
         else:
@@ -680,9 +669,7 @@ class Parser:
 
         return check.success(node)
 
-#I am now realizing that the statement list node is redundant and adds an unneccessary step, you can put this code
-#into the comp statement body
-    def statementList(self):
+    def statement_list(self):
         check = ParseChecker()
 
         if check.error:
@@ -700,9 +687,9 @@ class Parser:
 
         return statements
 
-    def compStatement(self):
+    def comp_statement(self):
         check = ParseChecker()
-        nodes = check.register(self.statementList())
+        nodes = check.register(self.statement_list())
 
         if check.error:
             return check
@@ -717,7 +704,7 @@ class Parser:
     def program(self):
         check = ParseChecker()
 
-        node = check.register(self.compStatement())
+        node = check.register(self.comp_statement())
         check.register(self.advance())
 
         if check.error:
@@ -731,5 +718,5 @@ class Parser:
     def parse(self):
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
-            return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
+            return result.failure(err.InvalidSyntaxError("Syntax Error: Missing ; or operator, line: ", self.curToken.line))
         return result

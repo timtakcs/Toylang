@@ -15,7 +15,6 @@ class Array:
         self.elements = elements
         self.length = len(elements)
 
-    #rewrite this so that it works for a dictionary
     def append(self, element):
         newList = self.copy()
         newList.append(element)
@@ -33,7 +32,7 @@ class SymbolTable:
         self.parent = parent
         self.variables = {}
 
-    def addVar(self, name, value, indices):
+    def add_var(self, name, value, indices):
         check = inp.RunChecker()
         if len(indices) > 0:
             check.register(self.descend_to_index(name, self.variables[name], indices, value, 0))
@@ -51,7 +50,7 @@ class SymbolTable:
         except:
             return check.failure(err.DimensionExceededError(name))
 
-    def getVar(self, name, indices):
+    def get_var(self, name, indices):
         check = inp.RunChecker()
         try:
             var = self.variables[name]
@@ -67,7 +66,7 @@ class SymbolTable:
 
         return var
 
-    def incVar(self, name, op):
+    def inc_var(self, name, op):
         check = inp.RunChecker()
         try:
             if op.type == lx.typeInc:
@@ -77,17 +76,17 @@ class SymbolTable:
         except:
             return check.failure(err.MissingVariableError(name))
 
-    def addFunc(self, name, function):
+    def add_func(self, name, function):
         self.variables[name] = Function(function)
 
-    def addArr(self, name, array):
+    def add_arr(self, name, array):
         dict_array = {}
         for i in range(len(array)):
             dict_array[i] = array[i]
 
         self.variables[name] = Array(dict_array)
 
-    def getFunc(self, name):
+    def get_func(self, name):
         check = inp.RunChecker()
         try:
             return self.variables[name]

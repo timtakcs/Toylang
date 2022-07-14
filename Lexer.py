@@ -141,7 +141,7 @@ class Lexer:
         return self.text[peekPos]
 
 #if the keywords are misspelled it can cause a whole bunch of problems
-    def makeVar(self, line):
+    def make_var(self, line):
         varID = ''
 
         while self.currentChar != None and self.currentChar.isalnum() == True or self.currentChar == "_":
@@ -174,7 +174,7 @@ class Lexer:
         else:
             return None
 
-    def makeNumber(self, line):
+    def make_number(self, line):
         numString = ""
         dotCount = 0
 
@@ -196,7 +196,7 @@ class Lexer:
         
         return numToken
 
-    def makeString(self, line):
+    def make_string(self, line):
         self.advance()
 
         stringToken = '' 
@@ -213,7 +213,7 @@ class Lexer:
 #This is too redundant
 #Looking back at it, I have no clue what that means and I think the way it is right now is already a finite state machine
 #i dont think this is a finite state machine
-    def makeTokens(self):
+    def make_tokens(self):
         tokenArray = []
 
         while self.currentChar != None:
@@ -269,7 +269,7 @@ class Lexer:
                 tokenArray.append(Token(tokenType=typeComma, line=self.pos.line))
                 self.advance()
             elif self.currentChar == "\"":
-                string = self.makeString(self.pos.line)
+                string = self.make_string(self.pos.line)
                 if string != None:
                     tokenArray.append(string)
                     self.advance()
@@ -278,7 +278,7 @@ class Lexer:
                     self.advance()
                     return [], err.InvalidString(line - 1)
             elif self.currentChar in INTS:
-                num = self.makeNumber(line=self.pos.line)
+                num = self.make_number(line=self.pos.line)
                 if num != None:
                     tokenArray.append(num)
                 else:
@@ -286,7 +286,7 @@ class Lexer:
                     self.advance()
                     return [], err.IllegalFloatError(line)
             elif self.currentChar.isalnum():
-                var = self.makeVar(self.pos.line)
+                var = self.make_var(self.pos.line)
                 if var != None:
                     tokenArray.append(var)
                 else:

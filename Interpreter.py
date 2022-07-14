@@ -235,7 +235,7 @@ class Interpreter(Visitor):
                 return self.table.addArr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
             else:
                 return check.failure(err.InvalidFunctionCall(f'append takes in array and value as arguments'))
-                
+
     def visitEmptyOpNode(self, node):
         pass
 
@@ -249,7 +249,6 @@ class Interpreter(Visitor):
         check.register(self.visit(self.tree.node))
         
         if check.error:
-            print("shits itself")
             return check.error, None
 
         return None, self.table

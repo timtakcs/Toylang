@@ -9,7 +9,7 @@ import SymbolTable as smb
 
 def run(text):
     lexer = lx.Lexer(text)
-    tokens, error = lexer.makeTokens()
+    tokens, error = lexer.make_tokens()
 
     if error:
         return None, error
