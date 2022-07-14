@@ -251,6 +251,8 @@ class Parser:
         elif self.curToken.type == lx.typeLSQ:
             left = check.register(self.array_expression(left))
 
+        if check.error: return check
+
         return check.success(left)
 
     def array_expression(self, left):

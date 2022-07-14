@@ -16,6 +16,9 @@ def run(text):
 
     parser = prs.Parser(tokens)
     interpreter = intr.Interpreter(parser, smb.SymbolTable(None))
-    result = interpreter.interpret()
+    error, result = interpreter.interpret()
+
+    if error:
+        return None, error
 
     return result, interpreter.tree.error

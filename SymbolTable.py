@@ -21,13 +21,6 @@ class Array:
         newList.append(element)
         return newList
 
-    def get_element(self, index):
-        if isinstance(index, int):
-            try:
-                return self.elements[index]
-            except:
-                return err.IndexOutOfBoundsError(f'{index} out of bounds for length {len(self.elements)}')
-
     def copy(self):
         newList = Array(self.elements[:])
         return newList
@@ -41,23 +34,35 @@ class SymbolTable:
         self.variables = {}
 
     def addVar(self, name, value, indices):
+        check = inp.RunChecker()
         if len(indices) > 0:
-            self.descend_to_index(self.variables[name], indices, value, 0)
+            check.register(self.descend_to_index(name, self.variables[name], indices, value, 0))
         else:
             self.variables[name] = value
 
-    def descend_to_index(self, var, indices, value, level):
-        if level == len(indices) - 1:
-            var.elements[indices[level]] = value
-        else:
-            self.descend_to_index(var.elements[indices[level]], indices, value, level + 1)
+    def descend_to_index(self, name, var, indices, value, level):
+        check = inp.RunChecker()
+
+        try:
+            if level == len(indices) - 1:
+                var.elements[indices[level]] = value
+            else:
+                check.register(self.descend_to_index(name, var.elements[indices[level]], indices, value, level + 1))
+        except:
+            return check.failure(err.DimensionExceededError(name))
 
     def getVar(self, name, indices):
-        var = self.variables[name]
+        check = inp.RunChecker()
+        try:
+            var = self.variables[name]
+        except:
+            return check.failure(err.MissingVariableError(name))
 
         #the if statement is used for future implementation of a dictionary
         if isinstance(var, Array):
             for i in range(len(indices)):
+                if indices[i] not in var.elements.keys():
+                    return check.failure(err.IndexOutOfBoundsError(f'{name}, index {indices[i]} for length {len(var.elements)}'))
                 var = var.elements[indices[i]]
 
         return var
@@ -70,7 +75,7 @@ class SymbolTable:
             else:
                 self.variables[name] -= 1
         except:
-            return check.failure(err.MissingVariableError(f'variable: {name}'))
+            return check.failure(err.MissingVariableError(name))
 
     def addFunc(self, name, function):
         self.variables[name] = Function(function)
@@ -83,10 +88,11 @@ class SymbolTable:
         self.variables[name] = Array(dict_array)
 
     def getFunc(self, name):
-        if self.parent:
-            return self.parent.variables[name]
-        else:
+        check = inp.RunChecker()
+        try:
             return self.variables[name]
+        except:
+            return check.failure(err.MissingVariableError(name))
 
     def __repr__(self):
         return f'({self.parent}, {self.variables})'

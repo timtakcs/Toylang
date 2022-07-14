@@ -6,7 +6,7 @@ class Error:
         self.name = name
 
     def asString(self):
-        message = f'{self.name}: line {self.details}\n'
+        message = f'{self.name}: {self.details}\n'
         return message
 
 class IllegalCharError(Error):
@@ -35,9 +35,20 @@ class MissingVariableError(Error):
 
 class IndexOutOfBoundsError(Error):
     def __init__(self, details):
-        super().__init__("Index out of bounds: ", details)
+        super().__init__("Index out of bounds", details)
 
 class InvalidNumOfArgumentsError(Error):
     def __init__(self, details):
-        super().__init__("Index out of bounds: ", details)
+        super().__init__("Mismatch of arguments", details)
+
+class DimensionExceededError(Error):
+    def __init__(self, details):
+        super().__init__("Dimension of array exceeded", details)
+
+class InvalidFunctionCall(Error):
+    def __init__(self, details):
+        super().__init__("Invalid function call", details)
+
+
+
 

@@ -1,8 +1,3 @@
-from ast import Pass
-from distutils.log import error
-from multiprocessing import Condition
-import string
-from symtable import Symbol
 import Parser as prs
 import Lexer as lx
 import Error as err
@@ -63,6 +58,7 @@ class Interpreter(Visitor):
     def __init__(self, parser, table):
         self.parser = parser
         self.table = table
+        self.error = None
 
     def visitOperatorNode(self, node):
         check = RunChecker()
@@ -91,17 +87,22 @@ class Interpreter(Visitor):
     def visitAssignmentNode(self, node):
         check = RunChecker()
         temp_indices = []
+        child = node.leftChild
 
-        for i in range(len(node.leftChild.indices)):
-            temp_indices.append(check.register(self.visit(node.leftChild.indices[i])))
+        for i in range(len(child.indices)):
+            temp_indices.append(check.register(self.visit(child.indices[i])))
 
-        self.table.addVar(node.leftChild.value, check.register(self.visit(node.rightChild)), temp_indices)
+        value = check.register(self.visit(node.rightChild))
+        
+        if check.shouldReturn():
+            return check
+
+        return self.table.addVar(child.value, value, temp_indices)
 
     def visitDoubleOpNode(self, node):
         check = RunChecker()
         #change the arguments to be visit functions
-        check.register(self.table.incVar(node.var.value, node.operator))
-        if check.shouldReturn(): return check
+        return self.table.incVar(node.var.value, node.operator)
 
     #TODO write the processing for non singular or factor increments
 
@@ -220,31 +221,35 @@ class Interpreter(Visitor):
             print(check.register(self.visit(node.argument[0])))
         elif node.value.value == "len":
             var = check.register(self.visit(node.argument[0]))
-            if isinstance(var, smb.Array):
-                return var.length
-            elif isinstance(var, string):
-                return len(var)
-            else:
-                print("error handling code")
+            try:
+                if isinstance(var, smb.Array):
+                    return var.length
+                elif isinstance(var, str):
+                    return len(var)
+            except:
+                return check.failure(err.InvalidFunctionCall(f'len only takes strings or arrays as arguments, provided {type(var)}'))
+
         elif node.value.value == "append":
             var = check.register(self.visit(node.argument[0]))
-            if not isinstance(var, smb.Array):
-                print("error handling code")
+            if isinstance(var, smb.Array):
+                return self.table.addArr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
             else:
-                self.table.addArr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
-        
+                return check.failure(err.InvalidFunctionCall(f'append takes in array and value as arguments'))
+                
     def visitEmptyOpNode(self, node):
         pass
 
     def interpret(self):
         check = RunChecker()
         self.tree = self.parser.parse()
+
         if self.tree.error:
-            return error
+            return self.tree.error, None
+
         check.register(self.visit(self.tree.node))
-
+        
         if check.error:
-            print("fff")
-            return check
+            print("shits itself")
+            return check.error, None
 
-        return self.table
+        return None, self.table
