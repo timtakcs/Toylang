@@ -260,6 +260,7 @@ class Lexer:
                 self.advance()
             elif self.currentChar == "}":
                 tokenArray.append(Token(tokenType=typeRBRACE, line=self.pos.line))
+                tokenArray.append(Token(tokenType=typeSemi, line=self.pos.line))
                 self.advance()
             elif self.currentChar == ";":
                 tokenArray.append(Token(tokenType=typeSemi, line=self.pos.line))
@@ -320,6 +321,5 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
-        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

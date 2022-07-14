@@ -170,13 +170,11 @@ class Interpreter(Visitor):
 
     def visitWhileNode(self, node):
         check = RunChecker()
-        while 1 == 1:
-            if check.register(self.visit(node.condition)) == True:
-                check.register(self.visit(node.body))
-                if check.shouldReturn():
-                    return check
-            else:
-                break
+        
+        while check.register(self.visit(node.condition)) == True:
+            check.register(self.visit(node.body))
+            if check.shouldReturn():
+                return check
 
     def visitReturnNode(self, node):
         check = RunChecker()

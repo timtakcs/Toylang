@@ -81,7 +81,7 @@ import language as lang
     #     testarr = bubblesort(testarr, 6);
     # """
 
-with open('new.gs', 'r') as f:
+with open('sorts.gs', 'r') as f:
     text = f.read()
 
 result, error = lang.run(text)

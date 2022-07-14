@@ -1,6 +1,13 @@
-array = [1, 2, 4, 5];
+max = 90;
 
-num = len(array);
-print(num);
+func x(max) {
+    for (i = 0; i < 10; i++) {
+        if i * i < max {
+            print(i);
+        }
+    }
+}
+
+x(max);
 
 
