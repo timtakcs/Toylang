@@ -129,6 +129,14 @@ class FuncCallNode:
     def __repr__(self) -> str:
         return f'({self.funcName}, {self.args})'
 
+class BuiltInFuncNode:
+    def __init__(self, value, argument):
+        self.value = value
+        self.argument = argument
+
+    def __repr__(self) -> str:
+        return f'({self.value}, {self.argument})'
+
 class ReturnNode:
     def __init__(self, expression):
         self.expression = expression
@@ -266,7 +274,6 @@ class Parser:
                 return check
             elements.append(expr)
             
-
         if self.curToken.type != lx.typeRSQ:
             return check.failure(err.InvalidSyntaxError("Invalid array declaration, expected ]", self.curToken.line))
 
@@ -310,7 +317,7 @@ class Parser:
 
         return ReturnNode(expr)
 
-    def ifProcessing(self, context, check):
+    def if_processing(self, context, check):
         condition = check.register(self.expression())
         if check.error: 
             return check
@@ -346,14 +353,14 @@ class Parser:
 
         check.register(self.advance())
 
-        cases.append((self.ifProcessing("if", check)))
+        cases.append((self.if_processing("if", check)))
         check.register(self.advance())
 
         #TODO abstract this to a function so that the code is readable
         while self.curToken.type == lx.typeElif:
             check.register(self.advance())
 
-            cases.append(self.ifProcessing("elif", check))
+            cases.append(self.if_processing("elif", check))
             check.register(self.advance())
         
         #same thing as before but without the condition
@@ -534,8 +541,7 @@ class Parser:
 
         if self.curToken.type == lx.typeVar:
             args.append(self.curToken)
-
-        check.register(self.advance())
+            check.register(self.advance())
 
         while self.curToken.type == lx.typeComma:
             check.register(self.advance())
@@ -570,10 +576,10 @@ class Parser:
 
         return check.success(FuncNode(var, args, body))
 
-    def funcCall(self, var):
+    def func_call_processing(self):
         check = ParseChecker()
         args = []
-
+        
         check.register(self.advance())
 
         if self.curToken.type != lx.typeRPAR:
@@ -592,10 +598,34 @@ class Parser:
         if self.curToken.type != lx.typeRPAR:
             return check.failure(err.InvalidSyntaxError("Invalid function call, expected )"
             , self.curToken.line))
-        
+
         check.register(self.advance())
+
+        return args
+
+    def funcCall(self, var):
+        check = ParseChecker()
+
+        if var.token.type in lx.builtInFuncs:
+            return check.register(self.builtInCall(var))
+
+        args = check.register(self.func_call_processing())
+        if check.error: return check
        
         return check.success(FuncCallNode(var, args))
+
+    def builtInCall(self, var):
+        check = ParseChecker()
+
+        args = check.register(self.func_call_processing())
+        if check.error: return check
+        
+        print("?????", var.value)
+
+        if len(args) != 1 and var.value != "append":
+            return check.failure(err.InvalidNumOfArgumentsError(f'{var.value} takes 1 argument, {len(args)} was provided instead. Line {self.curToken.line}'))
+
+        return check.success(BuiltInFuncNode(var, args))
 
     def statement(self):
         check = ParseChecker()
@@ -626,6 +656,12 @@ class Parser:
                 return check
         elif self.curToken.type == lx.typeReturn:
             node = check.register(self.return_expression())
+            if check.error:
+                return check
+        elif self.curToken.type == lx.typePrint or self.curToken == lx.typeAppend:
+            func = self.curToken
+            check.register(self.advance())
+            node = check.register(self.builtInCall(func))
             if check.error:
                 return check
         else:
@@ -686,5 +722,6 @@ class Parser:
     def parse(self):
         result = self.program()
         if not result.error and self.curToken.type != lx.typeEndOfFile:
+            print(self.curToken)
             return result.failure(err.InvalidSyntaxError("Syntax Error: Expected an operator", self.curToken.line))
         return result

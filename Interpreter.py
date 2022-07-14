@@ -1,5 +1,7 @@
 from ast import Pass
+from distutils.log import error
 from multiprocessing import Condition
+import string
 from symtable import Symbol
 import Parser as prs
 import Lexer as lx
@@ -214,15 +216,37 @@ class Interpreter(Visitor):
         result = check.register(self.execute(varName, func, args, newTable))
         return result
 
+    def visitBuiltInFuncNode(self, node):
+        check = RunChecker()
+        if node.value.value == "print":
+            print(check.register(self.visit(node.argument[0])))
+        elif node.value.value == "len":
+            var = check.register(self.visit(node.argument[0]))
+            if isinstance(var, smb.Array):
+                return var.length
+            elif isinstance(var, string):
+                return len(var)
+            else:
+                print("error handling code")
+        elif node.value.value == "append":
+            var = check.register(self.visit(node.argument[0]))
+            if not isinstance(var, smb.Array):
+                print("error handling code")
+            else:
+                self.table.addArr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
+        
     def visitEmptyOpNode(self, node):
         pass
 
     def interpret(self):
         check = RunChecker()
         self.tree = self.parser.parse()
+        if self.tree.error:
+            return error
         check.register(self.visit(self.tree.node))
 
         if check.error:
+            print("fff")
             return check
 
         return self.table

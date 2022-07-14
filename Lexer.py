@@ -33,6 +33,13 @@ typeLessEql = "LESSEQL"
 
 logicOps = [typeEQL, typeLess, typeGreater, typeLessEql, typeGrtrEql]
 
+#Built in functions
+typePrint = "PRINT"
+typeLength = "LENGTH"
+typeAppend = "APPEND"
+
+builtInFuncs = [typePrint, typeLength, typeAppend]
+
 #Identifiers
 
 typeVar = "VAR"
@@ -71,6 +78,7 @@ typeEndOfFile = "EOF"
 typeStart = "START"
 
 INTS = "0123456789"
+
 
 #Token
 
@@ -141,20 +149,26 @@ class Lexer:
             self.advance()
             
         if varID.isalnum() == True:
-            if varID == "IF":
+            if varID == "if":
                 return Token(typeIf, line, varID)
-            elif varID == "ELIF":
+            elif varID == "elif":
                 return Token(typeElif, line, varID)
-            elif varID == "ELSE":
+            elif varID == "else":
                 return Token(typeElse, line, varID)
-            elif varID == "FOR":
+            elif varID == "for":
                 return Token(typeFor, line, varID)
-            elif varID == "WHILE":
+            elif varID == "while":
                 return Token(typeWhile, line, varID)
-            elif varID == "FUNC":
+            elif varID == "func":
                 return Token(typeFunc, line, varID)
-            elif varID == "RETURN":
+            elif varID == "return":
                 return Token(typeReturn, line, varID)
+            elif varID == "print":
+                return Token(typePrint, line, varID)
+            elif varID == "len":
+                return Token(typeLength, line, varID)
+            elif varID == "append":
+                return Token(typeAppend, line, varID)
             else:
                 return Token(typeVar, line, varID)
         else:
@@ -306,5 +320,6 @@ class Lexer:
                 line = self.pos.line
                 self.advance()
                 return [], err.IllegalCharError(line)
+        print(tokenArray)
         tokenArray.append(Token(typeEndOfFile, line = self.pos.line))
         return tokenArray, None

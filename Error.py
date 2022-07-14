@@ -36,3 +36,8 @@ class MissingVariableError(Error):
 class IndexOutOfBoundsError(Error):
     def __init__(self, details):
         super().__init__("Index out of bounds: ", details)
+
+class InvalidNumOfArgumentsError(Error):
+    def __init__(self, details):
+        super().__init__("Index out of bounds: ", details)
+
