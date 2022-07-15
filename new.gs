@@ -1,5 +1,7 @@
-array = [2, 4, 9, 1, 0];
-num = array[2];
-array[9] = 11;
+func recursion(n) {
+    return recursion(n - 1);
+}
+
+num = recursion(1, 7);
 
 

@@ -192,6 +192,7 @@ class Interpreter(Visitor):
 
     def execute(self, name, func, args, table):
         check = RunChecker()
+
         interpreter = Interpreter(self.parser, table)
         argNames = func.args
 
@@ -214,8 +215,20 @@ class Interpreter(Visitor):
         func = self.table.get_func(var_name)
         args = node.args
         newTable = smb.SymbolTable(self.table)
+
+        if 'recursion_stack_counter' not in self.table.variables:
+            newTable.add_var('recursion_stack_counter', 1, [])
+        else:
+            if self.table.get_var('recursion_stack_counter', []) > 102:
+                return check.failure(err.MaxRecursionDepthExceeded(f'function {var_name}'))
+            else:
+                newTable.variables['recursion_stack_counter'] = self.table.get_var('recursion_stack_counter', []) + 1
+
         result = check.register(self.execute(var_name, func, args, newTable))
         del(newTable)
+
+        if check.shouldReturn(): return check
+        
         return result
 
     def visitBuiltInFuncNode(self, node):

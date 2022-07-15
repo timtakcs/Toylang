@@ -1,6 +1,6 @@
 import language as lang
 
-with open('sorts.gs', 'r') as f:
+with open('new.gs', 'r') as f:
     text = f.read()
 
 result, error = lang.run(text)

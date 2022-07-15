@@ -49,6 +49,10 @@ class InvalidFunctionCall(Error):
     def __init__(self, details):
         super().__init__("Invalid function call", details)
 
+class MaxRecursionDepthExceeded(Error):
+    def __init__(self, details):
+        super().__init__("Max Recursion Depth Exceeded", details)
+
 
 
 

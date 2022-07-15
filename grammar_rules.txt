@@ -10,46 +10,40 @@ expression: term ((MULT|DIV) term)*
 
 logic-expression: expression LOGIC expression
 
+increment-expression: factor (INC|DEC|INCBY|DECBY)
+
 arr-expression: [expression (, expression)*?]
 
 arr-index: arr[expression]
-
-var: ID
 
 assignment: var ASSGN expression
           | var INC
           | var INCBY factor
 
-if: IF logic-expression (compound_statement) (ELIF logic-expression (compound_statement))*? (ELSE (compound_statement))?
+if: if logic-expression { body } (elif logic-expression { body })*? (else { body })?
 
-for: FOR (assignment, expression, assignment) (compound_statement)
+for: FOR (assignment, logic-expression, increment-expression) { loop body }
 
-while: WHILE condition (compound_statement)
+while: while condition { loop body }
 
-func: func var ((argument)*) {compound_statement}
+func: func var ((expression, )*?) { func body }
 
-empty: //JS uses this
+func-call: var((expression, )*?)
 
 statement: compound_statement
+         | increment-expression
          | assignment
-         | empty
          | if
+         | while
+         | for
+         | func
+         | func-call
+
+        
+compound_statement: statement; (statement;)*?
 
 
-statement_list: statement
-              | statement LINE statement_list
-              
-compound_statement: statement_list
 
-program: compound_statement
-
-FOR (factor = 0; factor < N; factor++) {
-      loop body
-}
-
-while condition {
-      loop body
-}
 
 
 
