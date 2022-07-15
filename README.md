@@ -5,6 +5,7 @@ This is the first version of the language and includes some basic features, howe
 
 <h3>Syntax for v1.0</h3>
 ```
+
       factor: PLUS factor
             | MINUS factor
             | INT
