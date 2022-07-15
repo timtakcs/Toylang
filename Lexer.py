@@ -209,10 +209,6 @@ class Lexer:
 
         return Token(typeString, line, stringToken)
 
-#GOAL FOR IMPROVEMENT: Rewrite the token identifier as a finite state machine when you add more token types
-#This is too redundant
-#Looking back at it, I have no clue what that means and I think the way it is right now is already a finite state machine
-#i dont think this is a finite state machine
     def make_tokens(self):
         tokenArray = []
 

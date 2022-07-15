@@ -1,3 +1,4 @@
+from requests import delete
 import Parser as prs
 import Lexer as lx
 import Error as err
@@ -62,14 +63,20 @@ class Interpreter(Visitor):
 
     def visitOperatorNode(self, node):
         check = RunChecker()
+        left = check.register(self.visit(node.leftChild))
+        right = check.register(self.visit(node.rightChild))
+
+        if check.shouldReturn():
+            return check 
+
         if node.operator.type == lx.typePlus:
-            return check.register(self.visit(node.leftChild)) + check.register(self.visit(node.rightChild))
+            return left + right
         elif node.operator.type == lx.typeMinus:
-            return check.register(self.visit(node.leftChild)) - check.register(self.visit(node.rightChild))
+            return left - right
         elif node.operator.type == lx.typeMultiply:
-            return check.register(self.visit(node.leftChild)) * check.register(self.visit(node.rightChild))
+            return left * right
         elif node.operator.type == lx.typeDivide:
-            return check.register(self.visit(node.leftChild)) / check.register(self.visit(node.rightChild))
+            return left / right
 
     def visitFactorNode(self, node):
         check = RunChecker()
@@ -82,7 +89,7 @@ class Interpreter(Visitor):
         for i in range(len(node.indices)):
             temp_indices.append(check.register(self.visit(node.indices[i])))
 
-        return self.table.getVar(node.value, temp_indices)
+        return self.table.get_var(node.value, temp_indices)
 
     def visitAssignmentNode(self, node):
         check = RunChecker()
@@ -97,14 +104,10 @@ class Interpreter(Visitor):
         if check.shouldReturn():
             return check
 
-        return self.table.addVar(child.value, value, temp_indices)
+        self.table.add_var(child.value, value, temp_indices)
 
     def visitDoubleOpNode(self, node):
-        check = RunChecker()
-        #change the arguments to be visit functions
-        return self.table.incVar(node.var.value, node.operator)
-
-    #TODO write the processing for non singular or factor increments
+        return self.table.inc_var(node.var.value, node.operator)
 
     def visitCompoundStmtNode(self, node):
         check = RunChecker()
@@ -120,16 +123,23 @@ class Interpreter(Visitor):
     #TODO && and || interpreting
     def visitLogicNode(self, node):
         check = RunChecker()
+
+        left = check.register(self.visit(node.leftChild))
+        right = check.register(self.visit(node.rightChild))
+
+        if check.shouldReturn():
+            return check 
+
         if node.operator.type == lx.typeEQL:
-            return check.register(self.visit(node.leftChild)) == check.register(self.visit(node.rightChild))
+            return left == right
         elif node.operator.type == lx.typeLessEql:
-            return check.register(self.visit(node.leftChild)) <= check.register(self.visit(node.rightChild))
+            return left <= right
         elif node.operator.type == lx.typeGrtrEql:
-            return check.register(self.visit(node.leftChild)) >= check.register(self.visit(node.rightChild))
+            return left >= right
         elif node.operator.type == lx.typeLess:
-            return check.register(self.visit(node.leftChild)) < check.register(self.visit(node.rightChild))
+            return left < right
         elif node.operator.type == lx.typeGreater:
-            return check.register(self.visit(node.leftChild)) > check.register(self.visit(node.rightChild))
+            return left > right
 
     def visitIfNode(self, node):
         check = RunChecker()
@@ -152,12 +162,7 @@ class Interpreter(Visitor):
         for i in range(len(node.elements)):
             node.elements[i] = check.register(self.visit(node.elements[i]))
 
-        self.table.addArr(node.name, node.elements)
-
-    def visitIndexNode(self, node):
-        check = RunChecker()
-        array = self.table.getVar(node.array.value)
-        return check.register(self.visit(array.elements[check.register(self.visit(node.index))]))
+        self.table.add_arr(node.name, node.elements)
 
     def visitForNode(self, node):
         check = RunChecker()
@@ -183,36 +188,34 @@ class Interpreter(Visitor):
         return check.successReturn(value)
 
     def visitFuncNode(self, node):
-        self.table.addFunc(node.name, node)
+        self.table.add_func(node.name, node)
 
     def execute(self, name, func, args, table):
         check = RunChecker()
-        newTable = table
-        interpreter = Interpreter(self.parser, newTable)
+        interpreter = Interpreter(self.parser, table)
         argNames = func.args
 
         if len(argNames) != len(args):
             return f'(Function expected {len(argNames)} arguments, recieved {len(args)})'
 
         for i in range(len(args)):
-            newTable.addVar(argNames[i].value, check.register(self.visit(args[i])), [])
+            table.add_var(argNames[i].value, check.register(self.visit(args[i])), [])
 
-        newTable.addFunc(name, func)
+        table.add_func(name, func)
 
         check.register(interpreter.visit(func.body))
 
         if check.shouldReturn():
             return check
 
-        return newTable
-
     def visitFuncCallNode(self, node):
         check = RunChecker()
-        varName = node.funcName.value
-        func = self.table.getFunc(varName)
+        var_name = node.funcName.value
+        func = self.table.get_func(var_name)
         args = node.args
         newTable = smb.SymbolTable(self.table)
-        result = check.register(self.execute(varName, func, args, newTable))
+        result = check.register(self.execute(var_name, func, args, newTable))
+        del(newTable)
         return result
 
     def visitBuiltInFuncNode(self, node):
@@ -232,7 +235,7 @@ class Interpreter(Visitor):
         elif node.value.value == "append":
             var = check.register(self.visit(node.argument[0]))
             if isinstance(var, smb.Array):
-                return self.table.addArr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
+                return self.table.add_arr(node.argument[0].append(check.register(self.visit(node.argument[1]))))
             else:
                 return check.failure(err.InvalidFunctionCall(f'append takes in array and value as arguments'))
 

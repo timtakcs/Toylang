@@ -39,23 +39,28 @@ class SymbolTable:
         else:
             self.variables[name] = value
 
+        if check.shouldReturn():
+            return check
+
     def descend_to_index(self, name, var, indices, value, level):
         check = inp.RunChecker()
 
-        try:
-            if level == len(indices) - 1:
-                var.elements[indices[level]] = value
-            else:
-                check.register(self.descend_to_index(name, var.elements[indices[level]], indices, value, level + 1))
-        except:
-            return check.failure(err.DimensionExceededError(name))
-
+        if indices[level] not in var.elements.keys():
+            return check.failure(err.IndexOutOfBoundsError(f'{name}, index {indices[level]} for length {len(var.elements)}'))
+        
+        if level == len(indices) - 1:
+            var.elements[indices[level]] = value
+        else:
+            check.register(self.descend_to_index(name, var.elements[indices[level]], indices, value, level + 1))
+        
     def get_var(self, name, indices):
         check = inp.RunChecker()
-        try:
-            var = self.variables[name]
-        except:
+
+        if name not in self.variables.keys():
+            print("catch")
             return check.failure(err.MissingVariableError(name))
+        
+        var = self.variables[name]
 
         #the if statement is used for future implementation of a dictionary
         if isinstance(var, Array):
@@ -68,14 +73,15 @@ class SymbolTable:
 
     def inc_var(self, name, op):
         check = inp.RunChecker()
-        try:
-            if op.type == lx.typeInc:
-                self.variables[name] += 1
-            else:
-                self.variables[name] -= 1
-        except:
-            return check.failure(err.MissingVariableError(name))
 
+        if name not in self.variables.keys():
+            return check.failure(err.MissingVariableError(name))
+        
+        if op.type == lx.typeInc:
+            self.variables[name] += 1
+        else:
+            self.variables[name] -= 1
+        
     def add_func(self, name, function):
         self.variables[name] = Function(function)
 
@@ -88,10 +94,12 @@ class SymbolTable:
 
     def get_func(self, name):
         check = inp.RunChecker()
-        try:
-            return self.variables[name]
-        except:
+
+        if name not in self.variables.keys():
             return check.failure(err.MissingVariableError(name))
+        
+        return self.variables[name]
+    
 
     def __repr__(self):
         return f'({self.parent}, {self.variables})'

@@ -1,4 +1,5 @@
-func bubblesort(array, length) {
+func bubblesort(array) {
+    length = len(array);
     for (i = 0; i < length; i++) {
         for (j = 0; j < length - i - 1; j++) { 
             if array[j] > array[j + 1] {
@@ -11,7 +12,7 @@ func bubblesort(array, length) {
 }
 
 testarr = [3, 12, 0, 1, 7, 6];
-bubblesort(testarr, 6);
+bubblesort(testarr);
 
 func part(array, low, high) {
     pivot = array[high];
@@ -31,7 +32,7 @@ func part(array, low, high) {
     array[high] = temp;
 
     return i + 1;
-};
+}
 
 func quicksort(array, low, high, part) {
     if low < high {
@@ -39,10 +40,10 @@ func quicksort(array, low, high, part) {
         quicksort(array, low, index - 1);
         quicksort(array, index + 1, high);
     }
-};
+}
 
-newtestarr = [6, 71, 8, 61, 3, 9, 13];
-quicksort(newtestarr, 0, 6, part);
+somearray = [6, 71, 8, 61, 3, 9, 13];
+quicksort(somearray, 0, len(somearray) - 1, part);
 
 
 
