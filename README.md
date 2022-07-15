@@ -5,49 +5,49 @@ This is the first version of the language and includes some basic features, howe
 
 <h3>Syntax for v1.0</h3>
 ```
-factor: PLUS factor
-      | MINUS factor
-      | INT
-      | LPAR expression RPAR
-      | VAR
+      factor: PLUS factor
+            | MINUS factor
+            | INT
+            | LPAR expression RPAR
+            | VAR
 
-term: factor ((PLUS|MINUS) factor)*
+      term: factor ((PLUS|MINUS) factor)*
 
-expression: term ((MULT|DIV) term)*
+      expression: term ((MULT|DIV) term)*
 
-logic-expression: expression LOGIC expression
+      logic-expression: expression LOGIC expression
 
-increment-expression: factor (INC|DEC|INCBY|DECBY)
+      increment-expression: factor (INC|DEC|INCBY|DECBY)
 
-arr-expression: [expression (, expression)*?]
+      arr-expression: [expression (, expression)*?]
 
-arr-index: arr[expression]
+      arr-index: arr[expression]
 
-assignment: var ASSGN expression
-          | var INC
-          | var INCBY factor
+      assignment: var ASSGN expression
+                | var INC
+                | var INCBY factor
 
-if: if logic-expression { body } (elif logic-expression { body })*? (else { body })?
+      if: if logic-expression { body } (elif logic-expression { body })*? (else { body })?
 
-for: FOR (assignment, logic-expression, increment-expression) { loop body }
+      for: FOR (assignment, logic-expression, increment-expression) { loop body }
 
-while: while condition { loop body }
+      while: while condition { loop body }
 
-func: func var ((expression, )*?) { func body }
+      func: func var ((expression, )*?) { func body }
 
-func-call: var((expression, )*?)
+      func-call: var((expression, )*?)
 
-statement: compound_statement
-         | increment-expression
-         | assignment
-         | if
-         | while
-         | for
-         | func
-         | func-call
+      statement: compound_statement
+               | increment-expression
+               | assignment
+               | if
+               | while
+               | for
+               | func
+               | func-call
 
-        
-compound_statement: statement; (statement;)*?
+
+      compound_statement: statement; (statement;)*?
 ```
 
 <h3>Features</h3>
