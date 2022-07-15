@@ -173,8 +173,9 @@ func binarysearch(array, n, low, high) {
 ```
 
 <h3>Future Development</h3>
-- [ ] Type checking and semantic analysis
-- [ ] Rewrite in a compiled language
+- {{[[TODO]]}} Type checking and semantic analysis
+- {{[[TODO]]}} Rewrite in a compiled language
 
 <h3>Notes</h3>
+
 This language is not bug free nor is it fast. It includes a few optimizations which also act as error handling. Again, it was made for a learning experience and to build a mental framework for future projects.
