@@ -1,4 +1,3 @@
-```
 <h2>Toylang</h2>
 Toylang is an imperative toy language written in Python. This project was used as a learning experience for interpreters and compilers so that I could understand how they work and build more sophisticated projects in the future.
 
@@ -50,8 +49,8 @@ statement: compound_statement
         
 compound_statement: statement; (statement;)*?
 ```
-<h3>Features</h3>
 
+<h3>Features</h3>
 - This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and various optimizations.
 
 - It has garbage collection for local function variables.
@@ -66,9 +65,10 @@ compound_statement: statement; (statement;)*?
 ```
 print("Hello World");
 ```
-**If statements**
-```
 
+**If statements**
+
+```
 num1 = 10;
 num2 = 6;
 
@@ -81,11 +81,12 @@ elif num1 == num2 {
 else {
     print("num2 is greater");
 }
-
 ```
+
+
 **Loops**
-```
 
+```
 array = [];
 
 for (i = 0; i < 10; i++) {
@@ -120,6 +121,7 @@ func factorial(n) {
 <h4>Algorithms</h4>
 
 **Quicksort**
+
 ```
 func part(array, low, high) {
     pivot = array[high];
@@ -154,6 +156,7 @@ quicksort(somearray, 0, len(somearray) - 1, part);
 ```
 
 **Binary Search**
+
 ```
 func binarysearch(array, n, low, high) {
     middle = (high - low) // 2;
@@ -179,5 +182,4 @@ func binarysearch(array, n, low, high) {
 - [ ] Rewrite in a compiled language
 
 <h3>Notes</h3>
-
 This language is not bug free nor is it fast. It includes a few optimizations which also act as error handling. Again, it was made for a learning experience and to build a mental framework for future projects.
