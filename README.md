@@ -154,7 +154,7 @@ quicksort(somearray, 0, len(somearray) - 1, part);
 ```
 
 **Binary Search**
-```ruby
+```
 func binarysearch(array, n, low, high) {
     middle = (high - low) // 2;
     
