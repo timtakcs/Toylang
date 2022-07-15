@@ -173,8 +173,9 @@ func binarysearch(array, n, low, high) {
 ```
 
 <h3>Future Development</h3>
-- {{[[TODO]]}} Type checking and semantic analysis
-- {{[[TODO]]}} Rewrite in a compiled language
+- [ ] Type checking and semantic analysis
+
+- [ ] Rewrite in a compiled language
 
 <h3>Notes</h3>
 
