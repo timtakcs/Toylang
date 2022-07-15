@@ -1,11 +1,11 @@
-
+```
 <h2>Toylang</h2>
 Toylang is an imperative toy language written in Python. This project was used as a learning experience for interpreters and compilers so that I could understand how they work and build more sophisticated projects in the future.
 
 This is the first version of the language and includes some basic features, however, it is still a work in progress. 
 
 <h3>Syntax for v1.0</h3>
-```none
+```
 factor: PLUS factor
       | MINUS factor
       | INT
@@ -106,7 +106,7 @@ print(num2);
 
 **Functions and Recursion**
 
-```ruby
+```
 func factorial(n) {
     if n == 1 {
         return n;
@@ -120,7 +120,7 @@ func factorial(n) {
 <h4>Algorithms</h4>
 
 **Quicksort**
-```ruby
+```
 func part(array, low, high) {
     pivot = array[high];
     i = low - 1;
