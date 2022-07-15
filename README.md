@@ -61,10 +61,10 @@ This is the first version of the language and includes some basic features, howe
 
 - It supports recursion and catches stack overflows
 
-```
+
 <h3>Examples</h3>
 **Hello World**
-```
+
 
 ```
 print("Hello World");
