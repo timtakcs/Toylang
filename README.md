@@ -51,17 +51,17 @@ This is the first version of the language and includes some basic features, howe
       compound_statement: statement; (statement;)*?
 ```
 
-<h3>Features</h3>
-- This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and various optimizations.
+      <h3>Features</h3>
+      - This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and          various optimizations.
 
-- It has garbage collection for local function variables.
+      - It has garbage collection for local function variables.
 
-- It has built in functions: print(), len(), and append()
+      - It has built in functions: print(), len(), and append()
 
-- It supports recursion and catches stack overflows
+      - It supports recursion and catches stack overflows
 
-<h3>Examples</h3>
-**Hello World**
+      <h3>Examples</h3>
+      **Hello World**
 
 ```
 print("Hello World");
