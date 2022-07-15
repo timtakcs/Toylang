@@ -72,12 +72,16 @@ class Interpreter(Visitor):
         if node.operator.type == lx.typePlus:
             return left + right
         elif node.operator.type == lx.typeMinus:
+            if right == 0: return left
             return left - right
         elif node.operator.type == lx.typeMultiply:
+            if left == 0 or right == 0: return 0
             return left * right
         elif node.operator.type == lx.typeDivide:
+            if right == 0: return check.failure(err.InvalidSyntaxError("Math error, can't divide by 0", node.operator.line))
             return left / right
         elif node.operator.type == lx.typeIntDiv:
+            if right == 0: return check.failure(err.InvalidSyntaxError("Math error, can't divide by 0", node.operator.line))
             return left // right
 
     def visitFactorNode(self, node):
