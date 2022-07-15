@@ -77,6 +77,8 @@ class Interpreter(Visitor):
             return left * right
         elif node.operator.type == lx.typeDivide:
             return left / right
+        elif node.operator.type == lx.typeIntDiv:
+            return left // right
 
     def visitFactorNode(self, node):
         check = RunChecker()
@@ -190,7 +192,7 @@ class Interpreter(Visitor):
     def visitFuncNode(self, node):
         self.table.add_func(node.name, node)
 
-    def execute(self, name, func, args, table):
+    def execute_function(self, name, func, args, table):
         check = RunChecker()
 
         interpreter = Interpreter(self.parser, table)
@@ -224,11 +226,11 @@ class Interpreter(Visitor):
             else:
                 newTable.variables['recursion_stack_counter'] = self.table.get_var('recursion_stack_counter', []) + 1
 
-        result = check.register(self.execute(var_name, func, args, newTable))
+        result = check.register(self.execute_function(var_name, func, args, newTable))
         del(newTable)
 
         if check.shouldReturn(): return check
-        
+
         return result
 
     def visitBuiltInFuncNode(self, node):

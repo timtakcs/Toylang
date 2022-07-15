@@ -12,6 +12,7 @@ typeDivide = "DIV"
 typeMultiply = "MULT"
 typePlus = "PLUS"
 typeMinus = "MINUS"
+typeIntDiv = "INTDIV"
 typeAssign = "ASSGN"
 typeAnd = "AND"
 typeOr = "OR"
@@ -233,6 +234,9 @@ class Lexer:
             elif self.currentChar == "-" and self.peek() != "-":
                 tokenArray.append(Token(tokenType=typeMinus, line=self.pos.line))
                 self.advance()
+            elif self.currentChar == "/" and self.peek() == "/":
+                tokenArray.append(Token(tokenType=typeIntDiv, line=self.pos.line))
+                self.skip()
             elif self.currentChar == "*":
                 tokenArray.append(Token(tokenType=typeMultiply, line=self.pos.line))
                 self.advance()

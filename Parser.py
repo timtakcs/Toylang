@@ -221,7 +221,7 @@ class Parser:
         check = ParseChecker()
         left = check.register(self.factor())
 
-        while self.curToken.type in (lx.typeDivide, lx.typeMultiply):
+        while self.curToken.type in (lx.typeDivide, lx.typeMultiply, lx.typeIntDiv):
             operator = self.curToken
             check.register(self.advance())
             right = check.register(self.factor())
@@ -261,7 +261,8 @@ class Parser:
         elements = []
 
         if self.curToken.type == lx.typeRSQ:
-            return check.success(ArrayNode(elements))
+            check.register(self.advance())
+            return check.success(ArrayNode(left.value, elements))
         
         expr = check.register(self.expression())
         
