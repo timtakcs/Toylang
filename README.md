@@ -51,6 +51,7 @@ compound_statement: statement; (statement;)*?
 ```
 
 <h3>Features</h3>
+
 - This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and various optimizations.
 
 - It has garbage collection for local function variables.
@@ -60,15 +61,14 @@ compound_statement: statement; (statement;)*?
 - It supports recursion and catches stack overflows
 
 <h3>Examples</h3>
-**Hello World**
+Hello World
 
-```
+
 print("Hello World");
-```
 
-**If statements**
+If statements
 
-```
+
 num1 = 10;
 num2 = 6;
 
@@ -81,12 +81,12 @@ elif num1 == num2 {
 else {
     print("num2 is greater");
 }
-```
 
 
-**Loops**
 
-```
+Loops
+
+
 array = [];
 
 for (i = 0; i < 10; i++) {
@@ -103,11 +103,11 @@ while num2 > num1 {
 
 print(num1);
 print(num2);
-```
 
-**Functions and Recursion**
 
-```
+Functions and Recursion
+
+
 func factorial(n) {
     if n == 1 {
         return n;
@@ -116,13 +116,12 @@ func factorial(n) {
         return n * factorial(n - 1);
     }
 }
-```
+
 
 <h4>Algorithms</h4>
 
-**Quicksort**
+Quicksort
 
-```
 func part(array, low, high) {
     pivot = array[high];
     i = low - 1;
@@ -153,10 +152,9 @@ func quicksort(array, low, high, part) {
 
 somearray = [6, 71, 8, 61, 3, 9, 13];
 quicksort(somearray, 0, len(somearray) - 1, part);
-```
+
 
 **Binary Search**
-
 ```
 func binarysearch(array, n, low, high) {
     middle = (high - low) // 2;
