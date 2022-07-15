@@ -1,10 +1,11 @@
+
 <h2>Toylang</h2>
 Toylang is an imperative toy language written in Python. This project was used as a learning experience for interpreters and compilers so that I could understand how they work and build more sophisticated projects in the future.
 
 This is the first version of the language and includes some basic features, however, it is still a work in progress. 
 
 <h3>Syntax for v1.0</h3>
-```
+```none
 factor: PLUS factor
       | MINUS factor
       | INT
@@ -49,7 +50,6 @@ statement: compound_statement
         
 compound_statement: statement; (statement;)*?
 ```
-```
 <h3>Features</h3>
 
 - This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and various optimizations.
@@ -61,12 +61,12 @@ compound_statement: statement; (statement;)*?
 - It supports recursion and catches stack overflows
 
 <h3>Examples</h3>
-Hello World
+**Hello World**
 
 ```
 print("Hello World");
 ```
-If statements
+**If statements**
 ```
 
 num1 = 10;
@@ -104,9 +104,9 @@ print(num1);
 print(num2);
 ```
 
-Functions and Recursion
+**Functions and Recursion**
 
-```
+```ruby
 func factorial(n) {
     if n == 1 {
         return n;
@@ -119,8 +119,8 @@ func factorial(n) {
 
 <h4>Algorithms</h4>
 
-Quicksort
-```
+**Quicksort**
+```ruby
 func part(array, low, high) {
     pivot = array[high];
     i = low - 1;
@@ -154,7 +154,7 @@ quicksort(somearray, 0, len(somearray) - 1, part);
 ```
 
 **Binary Search**
-```
+```ruby
 func binarysearch(array, n, low, high) {
     middle = (high - low) // 2;
     
