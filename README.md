@@ -4,6 +4,7 @@ Toylang is an imperative toy language written in Python. This project was used a
 This is the first version of the language and includes some basic features, however, it is still a work in progress. 
 
 <h3>Syntax for v1.0</h3>
+
 ```
 
       factor: PLUS factor
@@ -54,8 +55,9 @@ This is the first version of the language and includes some basic features, howe
 ```
 
 ```
+
 <h3>Features</h3>
-- This language is weakly typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and          various optimizations.
+- This language is dynamically typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and          various optimizations.
 
 - It has garbage collection for local function variables.
 
@@ -69,7 +71,9 @@ This is the first version of the language and includes some basic features, howe
 
 
 ```
+
 print("Hello World");
+
 ```
 
 **If statements**
