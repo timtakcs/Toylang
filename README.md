@@ -71,9 +71,7 @@ This is the first version of the language and includes some basic features, howe
 
 
 ```
-
 print("Hello World");
-
 ```
 
 **If statements**
