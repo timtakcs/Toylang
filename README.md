@@ -54,7 +54,6 @@ This is the first version of the language and includes some basic features, howe
       
 ```
 
-```
 <h3>Features</h3>
 - This language is dynamically typed as it takes advantage of Python's single type. In the future I plan to make it strongly typed to perform semantic analysis and          various optimizations.
 
