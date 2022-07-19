@@ -1,9 +1,3 @@
-def fact(n):
-    if n == 1:
-        return n
-    else:
-        return n * fact(n - 1)
-
-print(fact(5))
+print(58 + 276 + 325 + 723 + 105 + 23 + 11)
 
 

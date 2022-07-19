@@ -16,7 +16,7 @@ else {
 array = [];
 
 for (i = 0; i < 10; i++) {
-    append(array, i);
+    print(i);
 }
 
 num1 = 10;
