@@ -3,6 +3,8 @@ Toylang is an imperative toy language written in Python. This project was used a
 
 This is the first version of the language and includes some basic features, however, it is still a work in progress. 
 
+Try it yourself here -> https://replit.com/@timtak/Toylang
+
 <h3>Syntax for v1.0</h3>
 
 ```
